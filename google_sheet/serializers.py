@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import GoogleSheet
+from .models import Hiring_process
 
-class GoogleSheetSerializer(serializers.ModelSerializer):
+class Hiring_processSerializer(serializers.ModelSerializer):
     class Meta:
-        model = GoogleSheet
-        fields = ["id", "name", "spreadsheet_id", "created_at"]
+        model = Hiring_process
+        fields = ["id", "integration_type", "name", "identifier", "created_at"]

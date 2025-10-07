@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import GoogleSheet
+from .models import Hiring_process
 
 # Register your models here.
-admin.site.register(GoogleSheet)
+admin.site.register(Hiring_process)

@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import GoogleSheetListView, GoogleSheetDataView
+from .views import hiringprocessListView, HiringSheetDataView
 
 urlpatterns = [
-    path("google-sheets/", GoogleSheetListView.as_view(), name="google-sheet-list"),
-    path("google-sheets/<int:sheet_id>/data/", GoogleSheetDataView.as_view(), name="google-sheet-data"),
+    path("hiring/", hiringprocessListView.as_view(), name="google-sheet-list"),
+    path("hiring/<int:integration_id>/data/", HiringSheetDataView.as_view(), name="google-sheet-data"),
 ]
