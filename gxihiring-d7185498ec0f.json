@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "gxihiring",
+  "private_key_id": "d7185498ec0f5fe4fc3f7985e856bc4caf229f9e",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCqTvX+A1ZAFGuE\n03HXuShR/gw7rxLJ0dbVZTA7mOk/E9QIKW/mLQ+jw/3uL4+XMjz5orcaVEO0vDcc\nvVdJnMrurdhY8hot2UvqDYZR2pE13tF881gzUk0YzTOvQVHQofFKy03clz4D2UsK\nPw2sLmEqxXx6WlMpgte0tN+gNXZEOyCFiDZWvlxFaTwOBJhNE7u73x97aYhq5n2W\n5Ngum5ZtLNmvFRYK7ZwYoAhDDcs9iAkKLqO/FmGDU8GSdOyntCtlxxmo6CWkr6/b\nQFWBrxrhaNGR9eDnChwveWgpYZdBbgSWdkV+Im4xJ2bGUTFG5NDYxIkTM1gbVB7+\npEx4WVi7AgMBAAECggEAUC7X622XxJi4nHNO1JGk1aGmEc2WK3YDzzmScWTHYD7O\nI7+aowTRKbnjiqpS0Q1CnwfIbHmC3QuGaR4OBCbxdllcFFh8Ed0OPFZ8yHn+xx2u\nhMUvYA5eJRCrxlYbFn7AU4YPlQ2SEY7TITJZlhjJ/7C2MAbpw5AKTdaguNWi5nEo\nhDuURQOHr7aRDNGeOhzHElqEM/ibYJlUXAgiAr+SYbYteIGRuSRcmTp//ksRdfKM\n9zfV0cy81RrYu+MBkCcWl+TCEsmyQ62aRhzpRdMnG5ZrBdhzcVDhzirARL3Mu5un\nmCjfOOwW6zvOQcVlPz/9CpfSB3I0k1SBKoC9GyE1dQKBgQDmiiBggq6kifP4wn9l\n3VReVfel1cbK/p/aOBUHC/7JYFexfDTU34RllBAlzQA2Oy8R7AtEtJ3QJaHf9DdD\neWFkXYbQpOh+yyfsZ4jcqrUGcTf70suo/J6Nfxnv4aajxlG276BLP3HEZdCq4nOe\nqzhCyVm55M34dDIpAF/DODWsTwKBgQC9HfcCBjmio9KchwGrH4ONWATVLT5J1uIW\nEMww30vWD+slYWZNlXnM3+zG9pxJuoS2+CHpJKR+auS6rfpQAIyKnZO4vTZ41kmT\nX/GronNqgbFIvMJTA8jj+ZD3/fBDEoCHx7qCDC9tIUho4n7LdMXYWTnlFijGKsSe\nVYAbFmmV1QKBgDSN8GuP3vgraq6eyCQUnJMUzevEHBlSimZYupJsrZyClfsj8XdF\nrQzq//NeFFpIi6ZuRPNYqVE2Avzm02JSXV1f5MfTkBy3e1ZtE8oaMEJTtQt3Nm5D\niHGBNAx3SGG1aBNn9QayY+D9xN/v16OoLJ8s/4NdIYcuFfE64JnESpgJAoGAEZu2\nofOebiw+seBIIXy/rOtjF84snIdraY6K1IoV74pv5H0bH2Ipgw/eZfAUQTEipj6Y\nObL1teeSAGeuhMBoVYeyd2L2rW2WUCiAwfBQOrx0m0cn+L7Dd6aG/vAf7L7ORNYt\n4WntCIYuzcU49QycVzaHk3LqvPjCcdOYJ+2ASzkCgYEAhbjRLLthf5l/bfBkg7fL\nzgqtYvsjvvzZH51pCqRm3aKCr8M1n8iyU7ink22mnuWHpf0GlMwBIFMrgOaBqzjB\ni6ZLrPSYELeGLIOJ9/yzrodeUjaLOo2jQ/Adc9a/M4vkBfEdybBeX2BrURdxw0qe\nH8NxVcvNWScRxjnUw0bAedA=\n-----END PRIVATE KEY-----\n",
+  "client_email": "gxihiring@gxihiring.iam.gserviceaccount.com",
+  "client_id": "110099484562757421540",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/gxihiring%40gxihiring.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
