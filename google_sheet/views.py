@@ -28,9 +28,8 @@ class hiringprocessListView(APIView):
 
 
 class HiringSheetDataView(APIView):
-    """Fetch all data for a given Integration ID (Google Sheet, Typeform, SurveyMonkey) with caching"""
 
-    CACHE_TTL = 60 * 60 * 24  # Cache for 5 minutes
+    CACHE_TTL = 60 * 60 * 24
 
     def get(self, request, integration_id):
         try:
