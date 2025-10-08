@@ -219,4 +219,3 @@ DEFAULT_FROM_EMAIL = 'jaijhavats32@gmail.com'
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOOGLE_SHEETS_CREDENTIALS_FILE = os.path.join(BASE_DIR, "gxihiring-d7185498ec0f.json")
 
-SURVEYMONKEY_ACCESS_TOKEN = "your_surveymonkey_access_token_here"

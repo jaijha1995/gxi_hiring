@@ -6,7 +6,7 @@ url = "https://api.typeform.com/forms/iBGYbV3s/responses"
 
 # Authorization header
 headers = {
-    "Authorization": "Bearer fsfhsfgf"
+    "Authorization": "Bea"
 }
 
 try:
