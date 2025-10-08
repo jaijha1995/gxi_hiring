@@ -166,13 +166,21 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
+
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -208,10 +216,8 @@ EMAIL_HOST_PASSWORD = 'esau spga ckkb ncof'
 DEFAULT_FROM_EMAIL = 'jaijhavats32@gmail.com'
 
 
-
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOOGLE_SHEETS_CREDENTIALS_FILE = os.path.join(BASE_DIR, "gxihiring-d7185498ec0f.json")
 
-TYPEFORM_ACCESS_TOKEN = "your_typeform_access_token_here"
+TYPEFORM_API_TOKEN  = "tfp_AXEbugc1jsYGQfoWZm5nJ6UGwBA9FTifiwxv5u9Jec9K_3sqakkoEur9kh7"
 SURVEYMONKEY_ACCESS_TOKEN = "your_surveymonkey_access_token_here"

@@ -6,17 +6,17 @@ from django.core.cache import cache
 from .serializers import Hiring_processSerializer
 from .models import Hiring_process
 
-from restserver.utils import fetch_sheet_data, get_sheet_names
-from restserver.surveymonkey_utils import fetch_survey_data, get_survey_details
-from restserver.typeform_utils import fetch_typeform_data, get_typeform_details
+from restserver.utils.utils import fetch_sheet_data, get_sheet_names
+from restserver.utils.surveymonkey_utils import fetch_survey_data, get_survey_details
+from restserver.utils.typeform_utils import fetch_typeform_data, get_typeform_details
 
 
 class hiringprocessListView(APIView):
     """List all saved integrations and add new ones"""
 
     def get(self, request):
-        sheets = Hiring_process.objects.all()
-        serializer = Hiring_processSerializer(sheets, many=True)
+        integrations = Hiring_process.objects.all()
+        serializer = Hiring_processSerializer(integrations, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -27,65 +27,43 @@ class hiringprocessListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class HiringSheetDataView(APIView):
+from django.shortcuts import get_object_or_404
 
-    CACHE_TTL = 60 * 60 * 24
+class HiringSheetDataView(APIView):
+    CACHE_TTL = 60 * 60 * 24  # 24 hours
 
     def get(self, request, integration_id):
-        try:
-            integration = Hiring_process.objects.get(id=integration_id)
-        except Hiring_process.DoesNotExist:
-            return Response({"error": "Integration not found"}, status=status.HTTP_404_NOT_FOUND)
+        integration = get_object_or_404(Hiring_process, id=integration_id)
 
-        # Cache key per integration ID
+        if not integration.token:
+            return Response({"error": "Token not set for this integration"}, status=status.HTTP_400_BAD_REQUEST)
+
         cache_key = f"integration_data_{integration_id}"
         cached_data = cache.get(cache_key)
         if cached_data:
             return Response(cached_data, status=status.HTTP_200_OK)
 
         try:
-            result = {}
-
-            if integration.integration_type == "google_sheet":
-                sheet_names = get_sheet_names(integration.identifier)
-                if not sheet_names:
-                    return Response({"error": "No sheet tabs found"}, status=status.HTTP_400_BAD_REQUEST)
-
-                data = fetch_sheet_data(integration.identifier, sheet_name=sheet_names[0])
-                result = {
-                    "integration_type": "google_sheet",
-                    "name": integration.name,
-                    "sheet_name": sheet_names[0],
-                    "data": data
-                }
-
-            elif integration.integration_type == "typeform":
-                details = get_typeform_details(integration.identifier)
-                data = fetch_typeform_data(integration.identifier)
-                result = {
-                    "integration_type": "typeform",
-                    "name": integration.name,
-                    "form_details": details,
-                    "responses": data
-                }
-
-            elif integration.integration_type == "surveymonkey":
-                details = get_survey_details(integration.identifier)
-                data = fetch_survey_data(integration.identifier)
-                result = {
-                    "integration_type": "surveymonkey",
-                    "name": integration.name,
-                    "survey_details": details,
-                    "responses": data
-                }
-
-            else:
+            if integration.integration_type != "typeform":
                 return Response({"error": "Unsupported integration type"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Store in cache
-            cache.set(cache_key, result, timeout=self.CACHE_TTL)
+            details = get_typeform_details(integration.identifier, integration.token)
+            if "error" in details:
+                return Response(details, status=status.HTTP_400_BAD_REQUEST)
 
+            data = fetch_typeform_data(integration.identifier, integration.token)
+            if "error" in data:
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+            result = {
+                "integration_type": "typeform",
+                "name": integration.name,
+                "form_details": details,
+                "responses": data
+            }
+
+            cache.set(cache_key, result, timeout=self.CACHE_TTL)
             return Response(result, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

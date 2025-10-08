@@ -1,0 +1,10 @@
+2025-10-08 11:15:27,496 12076 19168    ERROR typeform_utils.py _get_typeform_api 29 HTTPError 403: 403 Client Error:  for url: https://api.typeform.com/forms/u4VNwmKY
+2025-10-08 11:40:14,569 18704 11844    ERROR typeform_utils.py _get_typeform_api 30 HTTPError 403: 403 Client Error:  for url: https://api.typeform.com/forms/u4VNwmKY
+2025-10-08 11:41:13,141 24432 4556    ERROR typeform_utils.py _get_typeform_api 30 HTTPError 403: 403 Client Error:  for url: https://api.typeform.com/forms/u4VNwmKY
+2025-10-08 11:43:09,518 27584 19428    ERROR typeform_utils.py _get_typeform_api 30 HTTPError 403: 403 Client Error:  for url: https://api.typeform.com/forms/u4VNwmKY
+2025-10-08 11:43:36,406 17492 11500    ERROR typeform_utils.py _get_typeform_api 30 HTTPError 403: 403 Client Error:  for url: https://api.typeform.com/forms/u4VNwmKY/responses
+2025-10-08 11:46:08,975 10732 2904    ERROR typeform_utils.py get_typeform_details 25 HTTP Error while fetching Typeform details: 403 Client Error:  for url: https://api.typeform.com/forms/u4VNwmKY
+2025-10-08 11:46:46,559 22132 18596    ERROR typeform_utils.py get_typeform_details 20 Typeform API Error 403: {"code":"AUTHENTICATION_FAILED","description":"Authentication failed"}
+2025-10-08 11:46:54,237 13856 10596    ERROR typeform_utils.py get_typeform_details 25 HTTP Error while fetching Typeform details: 403 Client Error:  for url: https://api.typeform.com/forms/u4VNwmKY
+2025-10-08 11:51:41,816 26884 12640    ERROR typeform_utils.py get_typeform_details 26 HTTP Error while fetching Typeform details: 403 Client Error:  for url: https://api.typeform.com/forms/u4VNwmKY
+2025-10-08 11:53:08,004 21988 10164    ERROR typeform_utils.py get_typeform_details 24 HTTP Error while fetching Typeform details: 403 Client Error:  for url: https://api.typeform.com/forms/u4VNwmKY

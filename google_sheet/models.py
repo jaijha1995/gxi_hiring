@@ -11,6 +11,7 @@ class Hiring_process(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     identifier = models.CharField(max_length=255, unique=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    token = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         indexes = [

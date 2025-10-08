@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from django.utils import timezone
 import uuid
-from restserver.utils import TimestampMixin
+from restserver.utils.utils import TimestampMixin
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
