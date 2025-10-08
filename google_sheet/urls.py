@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import hiringprocessListView, HiringSheetDataView
+from .views import hiringprocessListView, HiringSheetDataView , typeformListView
 from .weebhookviews import TypeformWebhookView, SurveyMonkeyWebhookView
 
 urlpatterns = [
@@ -7,5 +7,6 @@ urlpatterns = [
     path("hiring/<int:integration_id>/data/", HiringSheetDataView.as_view(), name="google-sheet-data"),
     path("webhook/typeform/", TypeformWebhookView.as_view(), name="typeform-webhook"),
     path("webhook/surveymonkey/", SurveyMonkeyWebhookView.as_view(), name="surveymonkey-webhook"),
+    path("typeform/<int:integration_id>/save/", typeformListView.as_view()),
 
 ]

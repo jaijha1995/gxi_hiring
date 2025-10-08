@@ -5,6 +5,7 @@ from django.core.cache import cache
 
 from .serializers import Hiring_processSerializer
 from .models import Hiring_process
+from django.shortcuts import get_object_or_404
 
 from restserver.utils.utils import fetch_sheet_data, get_sheet_names
 from restserver.utils.surveymonkey_utils import fetch_survey_data, get_survey_details
@@ -27,10 +28,8 @@ class hiringprocessListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-from django.shortcuts import get_object_or_404
-
 class HiringSheetDataView(APIView):
-    CACHE_TTL = 60 * 60 * 24  # 24 hours
+    CACHE_TTL = 60 * 60 * 24  # Cache for 24 hours
 
     def get(self, request, integration_id):
         integration = get_object_or_404(Hiring_process, id=integration_id)
@@ -55,11 +54,21 @@ class HiringSheetDataView(APIView):
             if "error" in data:
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
+            # Save only answers to DB
+            responses = data.get("items", [])
+            for item in responses:
+                TypeformAnswer.objects.update_or_create(
+                    response_id=item.get("response_id"),
+                    integration=integration,
+                    defaults={
+                        "answers": item.get("answers", []),
+                        "landed_at": item.get("landed_at"),
+                        "submitted_at": item.get("submitted_at")
+                    }
+                )
+
             result = {
-                "integration_type": "typeform",
-                "name": integration.name,
-                "form_details": details,
-                "responses": data
+                "responses": responses
             }
 
             cache.set(cache_key, result, timeout=self.CACHE_TTL)
@@ -67,3 +76,42 @@ class HiringSheetDataView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import TypeformAnswer, Hiring_process
+from .serializers import TypeformAnswerSerializer
+from restserver.utils.typeform_utils import fetch_typeform_data
+
+class typeformListView(APIView):
+
+    def get(self, request, integration_id):
+        try:
+            integration = Hiring_process.objects.get(id=integration_id)
+        except Hiring_process.DoesNotExist:
+            return Response({"error": "Integration not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Fetch Typeform responses
+        data = fetch_typeform_data(integration.identifier, integration.token)
+
+        if "error" in data:
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+        answers_list = data.get("responses", {}).get("items", [])
+        saved_objects = []
+
+        for item in answers_list:
+            obj = TypeformAnswer.objects.create(
+                integration=integration,
+                response_id=item.get("response_id"),
+                answers=item.get("answers", []),
+                landed_at=item.get("landed_at"),
+                submitted_at=item.get("submitted_at")
+            )
+            saved_objects.append(obj)
+
+        serializer = TypeformAnswerSerializer(saved_objects, many=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

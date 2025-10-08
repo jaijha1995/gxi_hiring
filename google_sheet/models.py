@@ -24,3 +24,22 @@ class Hiring_process(models.Model):
 
     def __str__(self):
         return f"{self.integration_type}: {self.name or self.identifier}"
+
+
+
+
+class TypeformAnswer(models.Model):
+    integration = models.ForeignKey(
+        'Hiring_process', 
+        on_delete=models.CASCADE, 
+        related_name="typeform_answers"
+    )
+    response_id = models.CharField(max_length=255, db_index=True)
+    answers = models.JSONField()  # Works fine with SQLite in Django ≥3.1
+    landed_at = models.DateTimeField()
+    submitted_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Typeform Answer {self.response_id}"
+
