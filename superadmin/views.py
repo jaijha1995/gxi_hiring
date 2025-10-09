@@ -34,7 +34,7 @@ class CustomerViews(APIView):
             'last_name': last_name,
         })
         plain_message = strip_tags(html_message)
-        send_mail(subject, plain_message, 'jai@skylabstech.com', [email], html_message=html_message)
+        send_mail(subject, plain_message, 'jaijhavats32@gmail.com', [email], html_message=html_message)
 
     def post(self, request, org_id=None):
         data = request.data

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Stack AI</title>
+</head>
+<body style="font-family: 'Arial', sans-serif;">
+
+    <div style="background-color: #f4f4f4; padding: 20px; text-align: center;">
+        <h2 style="color: #333;">Welcome to Stack AI!</h2>
+    </div>
+
+    <div style="padding: 20px;">
+        <p>Dear {{ username }},</p>
+        <p>Thank you for signing up with Stack AI! We are thrilled to have you as a part of our community.</p>
+        <p>Feel free to explore our platform and discover amazing features tailored just for you.</p>
+
+        <!-- Add more dynamic content as needed -->
+
+        <p>Your login credentials:</p>
+        <p>Email: {{ email }}</p>
+        <p>Password: {{ password }}</p>
+        {% comment %} <p>Password: {{ password }}</p> {% endcomment %}
+
+        <p>If you have any questions or need assistance, don't hesitate to contact our support team.</p>
+
+        <p>Best regards,<br>
+            StackAI Team</p>
+    </div>
+
+    <div style="background-color: #333; color: #fff; padding: 10px; text-align: center;">
+        &copy; 2025 StackAI. All rights reserved.
+    </div>
+
+</body>
+</html>

@@ -210,9 +210,28 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'jaijhavats32@gmail.com'
+
 EMAIL_HOST_PASSWORD = 'esau spga ckkb ncof'
 DEFAULT_FROM_EMAIL = 'jaijhavats32@gmail.com'
 
+
+
+
+
+# settings.py
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.zoho.com'
+# EMAIL_PORT = 465
+# EMAIL_USE_SSL = True
+# EMAIL_USE_TLS = False
+# EMAIL_HOST_USER = 'jaijhavats@zohomail.in'
+# EMAIL_HOST_PASSWORD = 'DrgWJwmYQBXJ'  # Use App Password
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+
+# EMAIL_HOST_PASSWORD = 'KCfAFH7xjHQ8'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOOGLE_SHEETS_CREDENTIALS_FILE = os.path.join(BASE_DIR, "gxihiring-d7185498ec0f.json")
