@@ -1,0 +1,133 @@
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.cache import cache
+from django.shortcuts import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
+import logging
+
+from .models import CandidateDetails, CandidateStatusHistory
+from .serializers import CandidateDetailsSerializer, CandidateStatusHistorySerializer
+
+logger = logging.getLogger(__name__)
+
+
+# Pagination Class
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+# Candidate Details API
+class CandidateDetailsAPIView(APIView):
+    CACHE_TIMEOUT = 60 * 60 * 24  # 24 hours
+    pagination_class = StandardResultsSetPagination  # class reference
+
+    def get(self, request, pk=None):
+        """GET all candidates or specific candidate by id"""
+        if pk:
+            cache_key = f"candidate_{pk}"
+            cached_data = cache.get(cache_key)
+            if cached_data:
+                logger.debug(f"Cache hit for {cache_key}")
+                return Response(cached_data, status=status.HTTP_200_OK)
+
+            candidate = get_object_or_404(CandidateDetails, pk=pk)
+            serializer = CandidateDetailsSerializer(candidate)
+            cache.set(cache_key, serializer.data, self.CACHE_TIMEOUT)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            status_filter = request.GET.get('status', 'all')
+            page_number = request.GET.get('page', 1)
+            cache_key = f"candidate_list_{status_filter}_{page_number}"
+
+            cached_data = cache.get(cache_key)
+            if cached_data:
+                logger.debug(f"Cache hit for {cache_key}")
+                return Response(cached_data, status=status.HTTP_200_OK)
+
+            candidates = CandidateDetails.objects.all().order_by('-created_at')
+            if status_filter != "all":
+                candidates = candidates.filter(current_status=status_filter)
+
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(candidates, request, view=self)
+            serializer = CandidateDetailsSerializer(page, many=True)
+            result = paginator.get_paginated_response(serializer.data)
+
+            cache.set(cache_key, result.data, self.CACHE_TIMEOUT)
+            return result
+
+    def post(self, request):
+        """Create a new candidate (default status = scouting)"""
+        serializer = CandidateDetailsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(current_status='scouting')
+            self.invalidate_cache()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        """Update candidate status and fields"""
+        candidate = get_object_or_404(CandidateDetails, pk=pk)
+        old_status = candidate.current_status
+
+        serializer = CandidateDetailsSerializer(candidate, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            new_status = serializer.validated_data.get('current_status', old_status)
+
+            if new_status != old_status:
+                CandidateStatusHistory.objects.create(
+                    candidate=candidate,
+                    previous_status=old_status,
+                    new_status=new_status
+                )
+
+            self.invalidate_cache(pk)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        """Delete candidate"""
+        candidate = get_object_or_404(CandidateDetails, pk=pk)
+        candidate.delete()
+        self.invalidate_cache(pk)
+        return Response({"message": "Candidate deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+    def invalidate_cache(self, pk=None):
+        """Remove cached data for LocMemCache"""
+        try:
+            # Manually delete candidate list caches
+            if hasattr(cache, "_cache"):
+                keys = [key for key in cache._cache.keys() if key.startswith("candidate_list_")]
+                for key in keys:
+                    cache.delete(key)
+
+            if pk:
+                cache.delete(f"candidate_{pk}")
+        except Exception as e:
+            logger.error(f"Cache invalidation failed: {str(e)}")
+
+
+# Candidate Status History API
+class CandidateStatusHistoryAPIView(APIView):
+    CACHE_TIMEOUT = 60 * 60 * 24  # 24 hours
+
+    def get(self, request, candidate_id=None):
+        """Get history of a candidate"""
+        if not candidate_id:
+            return Response({"error": "candidate_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        cache_key = f"candidate_history_{candidate_id}"
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            logger.debug(f"Cache hit for {cache_key}")
+            return Response(cached_data, status=status.HTTP_200_OK)
+
+        history = CandidateStatusHistory.objects.filter(candidate_id=candidate_id).order_by('-changed_at')
+        serializer = CandidateStatusHistorySerializer(history, many=True)
+        cache.set(cache_key, serializer.data, self.CACHE_TIMEOUT)
+        return Response(serializer.data, status=status.HTTP_200_OK)
