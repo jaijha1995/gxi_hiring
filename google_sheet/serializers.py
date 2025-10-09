@@ -11,6 +11,7 @@ from rest_framework import serializers
 from .models import TypeformAnswer
 
 class TypeformAnswerSerializer(serializers.ModelSerializer):
+    integration = Hiring_processSerializer(read_only=True)
     class Meta:
         model = TypeformAnswer
         fields = ["id", "integration", "response_id", "answers", "landed_at", "submitted_at", "created_at"]

@@ -35,7 +35,7 @@ class TypeformAnswer(models.Model):
         related_name="typeform_answers"
     )
     response_id = models.CharField(max_length=255, db_index=True)
-    answers = models.JSONField()  # Works fine with SQLite in Django ≥3.1
+    answers = models.JSONField()
     landed_at = models.DateTimeField()
     submitted_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)

@@ -13,8 +13,6 @@ from restserver.utils.typeform_utils import fetch_typeform_data, get_typeform_de
 
 
 class hiringprocessListView(APIView):
-    """List all saved integrations and add new ones"""
-
     def get(self, request):
         integrations = Hiring_process.objects.all()
         serializer = Hiring_processSerializer(integrations, many=True)
@@ -29,7 +27,7 @@ class hiringprocessListView(APIView):
 
 
 class HiringSheetDataView(APIView):
-    CACHE_TTL = 60 * 60 * 24  # Cache for 24 hours
+    CACHE_TTL = 60 * 60 * 24
 
     def get(self, request, integration_id):
         integration = get_object_or_404(Hiring_process, id=integration_id)
@@ -51,7 +49,6 @@ class HiringSheetDataView(APIView):
                 return Response(details, status=status.HTTP_400_BAD_REQUEST)
 
             data = fetch_typeform_data(integration.identifier, integration.token)
-            print(f"data : {data}")
             if "error" in data:
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
@@ -69,6 +66,8 @@ class HiringSheetDataView(APIView):
                 )
 
             result = {
+                "integration_id": integration.id,
+                "integration_name": integration.name,
                 "responses": responses
             }
 
@@ -83,6 +82,7 @@ class HiringSheetDataView(APIView):
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.db.models import Count
 from .models import TypeformAnswer, Hiring_process
 from .serializers import TypeformAnswerSerializer
 from restserver.utils.typeform_utils import fetch_typeform_data
@@ -91,28 +91,43 @@ from restserver.utils.typeform_utils import fetch_typeform_data
 class TypeformListView(APIView):
 
     def get(self, request, integration_id=None):
-        """
-        GET request:
-        - If integration_id is provided → fetch Typeform data for that integration and save it.
-        - If integration_id is not provided → return all saved TypeformAnswer objects.
-        """
-        # Case 1: No integration_id → fetch all saved TypeformAnswer data
+        integration_name = request.query_params.get("name", None)
+
         if integration_id is None:
-            all_answers = TypeformAnswer.objects.all()
-            serializer = TypeformAnswerSerializer(all_answers, many=True)
+            queryset = TypeformAnswer.objects.all()
+            if integration_name:
+                queryset = queryset.filter(
+                    integration__name__icontains=integration_name
+                )
+
+            serializer = TypeformAnswerSerializer(queryset, many=True)
+            counts_by_integration = (
+                TypeformAnswer.objects
+                .values("integration__name")
+                .annotate(count=Count("id"))
+                .order_by()
+            )
+
+            total_counts = {
+                item["integration__name"]: item["count"]
+                for item in counts_by_integration
+            }
+
             return Response({
-                "message": "All saved Typeform answers fetched successfully.",
-                "count": len(serializer.data),
+                "message": (
+                    f"Filtered results for integration name '{integration_name}'"
+                    if integration_name else
+                    "All saved Typeform answers fetched successfully."
+                ),
+                "filtered_count": queryset.count(),
+                "total_counts": total_counts,
                 "data": serializer.data
             }, status=status.HTTP_200_OK)
-
-        # Case 2: integration_id provided → fetch from Typeform API and save
         try:
             integration = Hiring_process.objects.get(id=integration_id)
         except Hiring_process.DoesNotExist:
             return Response({"error": "Integration not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Fetch Typeform responses
         data = fetch_typeform_data(integration.identifier, integration.token)
         print(f"Fetched data from Typeform: {data}")
 
@@ -123,23 +138,25 @@ class TypeformListView(APIView):
         saved_objects = []
 
         for item in answers_list:
-            obj = TypeformAnswer.objects.create(
+            obj, created = TypeformAnswer.objects.get_or_create(
                 integration=integration,
                 response_id=item.get("response_id"),
-                answers=item.get("answers", []),
-                landed_at=item.get("landed_at"),
-                submitted_at=item.get("submitted_at")
+                defaults={
+                    "answers": item.get("answers", []),
+                    "landed_at": item.get("landed_at"),
+                    "submitted_at": item.get("submitted_at"),
+                }
             )
-            saved_objects.append(obj)
+            if created:
+                saved_objects.append(obj)
 
         serializer = TypeformAnswerSerializer(saved_objects, many=True)
-
-        # Combine both API and saved data in response
         return Response({
             "message": "Typeform responses fetched and saved successfully.",
             "integration_id": integration_id,
+            "integration_name": integration.name,
             "total_fetched": len(answers_list),
             "saved_count": len(saved_objects),
-            "typeform_raw_data": data,         # Full Typeform API response
-            "saved_data": serializer.data      # Serialized saved objects
+            "typeform_raw_data": data,
+            "saved_data": serializer.data
         }, status=status.HTTP_201_CREATED)
