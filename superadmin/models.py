@@ -32,7 +32,6 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     otp = models.CharField(max_length=6, blank=True, null=True)
-    #addresses = models.ManyToManyField('Address', related_name='user_profiles', blank=True)
     groups = models.ManyToManyField(
         'auth.Group',
         related_name='garment_customization_user_set',

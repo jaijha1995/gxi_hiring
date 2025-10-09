@@ -27,7 +27,7 @@ class CustomerViews(APIView):
         return secrets.token_hex(16)
 
     def send_welcome_email(self, email, first_name, last_name):
-        subject = 'Welcome to Stack AI'
+        subject = 'Welcome to Gxi Hiring'
         html_message = render_to_string('welcome_email_template.html', {
             'email': email,
             'first_name': first_name,

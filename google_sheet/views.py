@@ -51,6 +51,7 @@ class HiringSheetDataView(APIView):
                 return Response(details, status=status.HTTP_400_BAD_REQUEST)
 
             data = fetch_typeform_data(integration.identifier, integration.token)
+            print(f"data : {data}")
             if "error" in data:
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
@@ -86,9 +87,26 @@ from .models import TypeformAnswer, Hiring_process
 from .serializers import TypeformAnswerSerializer
 from restserver.utils.typeform_utils import fetch_typeform_data
 
-class typeformListView(APIView):
 
-    def get(self, request, integration_id):
+class TypeformListView(APIView):
+
+    def get(self, request, integration_id=None):
+        """
+        GET request:
+        - If integration_id is provided → fetch Typeform data for that integration and save it.
+        - If integration_id is not provided → return all saved TypeformAnswer objects.
+        """
+        # Case 1: No integration_id → fetch all saved TypeformAnswer data
+        if integration_id is None:
+            all_answers = TypeformAnswer.objects.all()
+            serializer = TypeformAnswerSerializer(all_answers, many=True)
+            return Response({
+                "message": "All saved Typeform answers fetched successfully.",
+                "count": len(serializer.data),
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+
+        # Case 2: integration_id provided → fetch from Typeform API and save
         try:
             integration = Hiring_process.objects.get(id=integration_id)
         except Hiring_process.DoesNotExist:
@@ -96,6 +114,7 @@ class typeformListView(APIView):
 
         # Fetch Typeform responses
         data = fetch_typeform_data(integration.identifier, integration.token)
+        print(f"Fetched data from Typeform: {data}")
 
         if "error" in data:
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
@@ -114,4 +133,13 @@ class typeformListView(APIView):
             saved_objects.append(obj)
 
         serializer = TypeformAnswerSerializer(saved_objects, many=True)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        # Combine both API and saved data in response
+        return Response({
+            "message": "Typeform responses fetched and saved successfully.",
+            "integration_id": integration_id,
+            "total_fetched": len(answers_list),
+            "saved_count": len(saved_objects),
+            "typeform_raw_data": data,         # Full Typeform API response
+            "saved_data": serializer.data      # Serialized saved objects
+        }, status=status.HTTP_201_CREATED)
