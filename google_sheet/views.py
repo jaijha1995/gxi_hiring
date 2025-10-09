@@ -121,6 +121,7 @@ class TypeformListView(APIView):
                 ),
                 "filtered_count": queryset.count(),
                 "total_counts": total_counts,
+                "status": "Scouting",
                 "data": serializer.data
             }, status=status.HTTP_200_OK)
         try:
