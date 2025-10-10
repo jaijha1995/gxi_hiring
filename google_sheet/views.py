@@ -90,11 +90,11 @@ from restserver.utils.typeform_utils import fetch_typeform_data
 
 
 FIELD_NAME_MAP = {
-    "GSdr0vI52V2H": "first_name",
-    "K4rp3rvgL1jg": "last_name",
-    "skkeXrAQqfxg": "phone_number",
-    "PljYRNxTMKTb": "email",
-    "hfVE1X2KrFdp": "country",
+    "first_name": ["GSdr0vI52V2H", "xrMAlvBbMrM9", "C66jIidCS4KW"],
+    "last_name": ["K4rp3rvgL1jg", "jsHa09RwZXcj", "8WFGWnAiQbdf"],
+    "phone_number": ["skkeXrAQqfxg", "XBcEyKAmDBCK", "vTNQ6dnhA1tT"],
+    "email": ["PljYRNxTMKTb", "or3Akhg0oKlf", "WFvWBoE3fXey"],
+    "country": ["hfVE1X2KrFdp", "BcmMmw15AJLz", "9RJE2mqcqlBH"]
 }
 
 
@@ -157,7 +157,13 @@ class TypeformListView(APIView):
 
             for ans in answers:
                 field_id = ans.get("field", {}).get("id")
-                mapped_name = FIELD_NAME_MAP.get(field_id)
+
+                # Check mapping for this field_id
+                mapped_name = None
+                for key, ids in FIELD_NAME_MAP.items():
+                    if field_id in ids:
+                        mapped_name = key
+                        break
 
                 if mapped_name:
                     if ans.get("type") == "text":
@@ -167,9 +173,17 @@ class TypeformListView(APIView):
                     elif ans.get("type") == "email":
                         transformed_answers.append({mapped_name: ans.get("email")})
                     elif ans.get("type") == "choices":
-                        transformed_answers.append({mapped_name: ans.get("choices")})
+                        transformed_answers.append({mapped_name: ans.get("choices", {}).get("labels", [])})
+                    elif ans.get("type") == "choice":
+                        transformed_answers.append({mapped_name: ans.get("choice", {}).get("label")})
+                    elif ans.get("type") == "boolean":
+                        transformed_answers.append({mapped_name: ans.get("boolean")})
+                    elif ans.get("type") == "date":
+                        transformed_answers.append({mapped_name: ans.get("date")})
+                    elif ans.get("type") == "number":
+                        transformed_answers.append({mapped_name: ans.get("number")})
                 else:
-                    transformed_answers.append(ans)  # keep raw if no mapping
+                    transformed_answers.append(ans)  # Keep original if no mapping
 
             item["answers"] = transformed_answers
 
