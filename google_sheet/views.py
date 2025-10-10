@@ -100,10 +100,41 @@ FIELD_NAME_MAP = {
 
 class TypeformListView(APIView):
 
+    def map_answers(self, answers):
+        transformed_answers = []
+        for ans in answers:
+            field_id = ans.get("field", {}).get("id")
+
+            mapped_name = None
+            for key, ids in FIELD_NAME_MAP.items():
+                if field_id in ids:
+                    mapped_name = key
+                    break
+
+            if mapped_name:
+                if ans.get("type") == "text":
+                    transformed_answers.append({mapped_name: ans.get("text")})
+                elif ans.get("type") == "phone_number":
+                    transformed_answers.append({mapped_name: ans.get("phone_number")})
+                elif ans.get("type") == "email":
+                    transformed_answers.append({mapped_name: ans.get("email")})
+                elif ans.get("type") == "choices":
+                    transformed_answers.append({mapped_name: ans.get("choices", {}).get("labels", [])})
+                elif ans.get("type") == "choice":
+                    transformed_answers.append({mapped_name: ans.get("choice", {}).get("label")})
+                elif ans.get("type") == "boolean":
+                    transformed_answers.append({mapped_name: ans.get("boolean")})
+                elif ans.get("type") == "date":
+                    transformed_answers.append({mapped_name: ans.get("date")})
+                elif ans.get("type") == "number":
+                    transformed_answers.append({mapped_name: ans.get("number")})
+            else:
+                transformed_answers.append(ans)
+        return transformed_answers
+
     def get(self, request, integration_id=None):
         integration_name = request.query_params.get("name", None)
 
-        # Case: List saved answers
         if integration_id is None:
             queryset = TypeformAnswer.objects.all()
             if integration_name:
@@ -111,7 +142,14 @@ class TypeformListView(APIView):
                     integration__name__icontains=integration_name
                 )
 
-            serializer = TypeformAnswerSerializer(queryset, many=True)
+            # Apply mapping for all saved answers
+            all_data = []
+            for ans_obj in queryset:
+                ans_obj.answers = self.map_answers(ans_obj.answers)
+                all_data.append(ans_obj)
+
+            serializer = TypeformAnswerSerializer(all_data, many=True)
+
             counts_by_integration = (
                 TypeformAnswer.objects
                 .values("integration__name")
@@ -136,7 +174,7 @@ class TypeformListView(APIView):
                 "data": serializer.data
             }, status=status.HTTP_200_OK)
 
-        # Case: Fetch new data
+        # Case: Fetch new data for a specific integration
         try:
             integration = Hiring_process.objects.get(id=integration_id)
         except Hiring_process.DoesNotExist:
@@ -148,44 +186,12 @@ class TypeformListView(APIView):
         if "error" in data:
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-        answers_list = data.get("items", [])  # Typeform responses
+        answers_list = data.get("items", [])
         saved_objects = []
 
         for item in answers_list:
             answers = item.get("answers", [])
-            transformed_answers = []
-
-            for ans in answers:
-                field_id = ans.get("field", {}).get("id")
-
-                # Check mapping for this field_id
-                mapped_name = None
-                for key, ids in FIELD_NAME_MAP.items():
-                    if field_id in ids:
-                        mapped_name = key
-                        break
-
-                if mapped_name:
-                    if ans.get("type") == "text":
-                        transformed_answers.append({mapped_name: ans.get("text")})
-                    elif ans.get("type") == "phone_number":
-                        transformed_answers.append({mapped_name: ans.get("phone_number")})
-                    elif ans.get("type") == "email":
-                        transformed_answers.append({mapped_name: ans.get("email")})
-                    elif ans.get("type") == "choices":
-                        transformed_answers.append({mapped_name: ans.get("choices", {}).get("labels", [])})
-                    elif ans.get("type") == "choice":
-                        transformed_answers.append({mapped_name: ans.get("choice", {}).get("label")})
-                    elif ans.get("type") == "boolean":
-                        transformed_answers.append({mapped_name: ans.get("boolean")})
-                    elif ans.get("type") == "date":
-                        transformed_answers.append({mapped_name: ans.get("date")})
-                    elif ans.get("type") == "number":
-                        transformed_answers.append({mapped_name: ans.get("number")})
-                else:
-                    transformed_answers.append(ans)  # Keep original if no mapping
-
-            item["answers"] = transformed_answers
+            item["answers"] = self.map_answers(answers)
 
             obj, created = TypeformAnswer.objects.get_or_create(
                 integration=integration,
