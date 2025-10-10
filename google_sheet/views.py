@@ -99,6 +99,33 @@ FIELD_NAME_MAP = {
     "JOb_Resposiltes": ["JixBI29gKECC", "lBoTQOD9jtqi", "p2KSFFXGM50P"],
     "Company": ["bZmXYzNyRAar", "qosM9BaQgRiz", "9FgFAzwB9SZT"],
     "Experience": ["ifsjUpya0xNx", "UbICuFB7QLwg", "h9YbJLKgnvz9"],
+    "Notice_Period": ["QDVKrprS7Vah"],  # IGNORE
+    "Joining_date": ["3jaqKHZpq9S6"],  # IGNORE
+    "Higest_degree": ["3hxg9RZ07fY7"],  # IGNORE
+    "Specialization": ["6g6DKtlVy9sc"],  # IGNORE
+    "University": ["xngwRnnQQfMs"],
+    "Percentage": ["TGTO7FjaEGRf"],
+    "python": ["GaNy7pqrsc8t"],
+    "python_rate": ["XsUaFdm29tiW"],
+    "RDBMS": ["TOGLRSygikj7"],
+    "RDBMS_rate": ["BEvfgv95crJY"],
+    "Machine Learning": ["Btbfn7tEo2De"],
+    "Machine Learning_rate": ["1LNTgu0cJQ4z"],
+    "R_language" : ["0z8VIV2t8WXX"],
+    "R_language_rate": ["H5ZK7SUO53Uq"],
+    "RAVE_developer": ["uyZTlo34AZgh"],
+    "RAVE_developer_rate": ["iS2RHphvJ14b"],
+    "Cucumber": ["CQ4ijUoGTyQM"],
+    "Cucumber_rate": ["Mj5nHG6jhES4"],
+    "BDD": ["yFsTMFNUPrkm"],
+    "BDD_rate": ["nvyx6BuB41Ls"],
+    "Linear Programming": ["GtJyOWE18ugq"],
+    "Linear Programming_rate": ["lrLM95WWijzt"],
+    "Statistics_and_Probability" : ["gGj2wCnIbgUd"],
+    "Statistics_and_Probability_rate": ["iW4A9tqh0V5M"],
+    "Discrete Mathematics":["F6CGB3UfonWh"],
+    "Discrete Mathematics_rate": ["X1b0Y5y3KX8D"],
+
 }
 
 
