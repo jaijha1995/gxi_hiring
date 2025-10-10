@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.core.cache import cache
 
-from .serializers import Hiring_processSerializer
+from .serializers import Hiring_processSerializer , TypeformAnswerSerializer
 from .models import Hiring_process
 from django.shortcuts import get_object_or_404
 
@@ -26,8 +26,18 @@ class hiringprocessListView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from django.core.cache import cache
+
+from .models import TypeformAnswer, Hiring_process
+from restserver.utils.typeform_utils import fetch_typeform_data, get_typeform_details
+
+
 class HiringSheetDataView(APIView):
-    CACHE_TTL = 60 * 60 * 24
+    CACHE_TTL = 60 * 60 * 24  # Cache for 1 day
 
     def get(self, request, integration_id):
         integration = get_object_or_404(Hiring_process, id=integration_id)
@@ -52,10 +62,11 @@ class HiringSheetDataView(APIView):
             if "error" in data:
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-            # Save only answers to DB
             responses = data.get("items", [])
+            saved_objects = []
+
             for item in responses:
-                TypeformAnswer.objects.update_or_create(
+                obj, created = TypeformAnswer.objects.update_or_create(
                     response_id=item.get("response_id"),
                     integration=integration,
                     defaults={
@@ -64,11 +75,14 @@ class HiringSheetDataView(APIView):
                         "submitted_at": item.get("submitted_at")
                     }
                 )
+                saved_objects.append(obj)
+
+            # Extract only the "answers" array from each saved object
+            answers_only = [obj.answers for obj in saved_objects]
 
             result = {
                 "integration_id": integration.id,
-                "integration_name": integration.name,
-                "responses": responses
+                "answers": answers_only,  # Only answers, no extra fields
             }
 
             cache.set(cache_key, result, timeout=self.CACHE_TTL)
@@ -79,23 +93,16 @@ class HiringSheetDataView(APIView):
 
 
 
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Count
+from django.shortcuts import get_object_or_404
 
 from .models import TypeformAnswer, Hiring_process
 from .serializers import TypeformAnswerSerializer
 from restserver.utils.typeform_utils import fetch_typeform_data
-
-
-FIELD_NAME_MAP = {
-    "GSdr0vI52V2H": "first_name",
-    "K4rp3rvgL1jg": "last_name",
-    "skkeXrAQqfxg": "phone_number",
-    "PljYRNxTMKTb": "email",
-    "hfVE1X2KrFdp": "country",
-}
 
 
 class TypeformListView(APIView):
@@ -103,15 +110,15 @@ class TypeformListView(APIView):
     def get(self, request, integration_id=None):
         integration_name = request.query_params.get("name", None)
 
-        # Case: List saved answers
+        # If no integration_id — fetch all stored Typeform answers
         if integration_id is None:
             queryset = TypeformAnswer.objects.all()
+
             if integration_name:
-                queryset = queryset.filter(
-                    integration__name__icontains=integration_name
-                )
+                queryset = queryset.filter(integration__name__icontains=integration_name)
 
             serializer = TypeformAnswerSerializer(queryset, many=True)
+
             counts_by_integration = (
                 TypeformAnswer.objects
                 .values("integration__name")
@@ -136,11 +143,8 @@ class TypeformListView(APIView):
                 "data": serializer.data
             }, status=status.HTTP_200_OK)
 
-        # Case: Fetch new data
-        try:
-            integration = Hiring_process.objects.get(id=integration_id)
-        except Hiring_process.DoesNotExist:
-            return Response({"error": "Integration not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Fetch data for a specific integration_id
+        integration = get_object_or_404(Hiring_process, id=integration_id)
 
         data = fetch_typeform_data(integration.identifier, integration.token)
         print(f"Fetched data from Typeform: {data}")
@@ -148,31 +152,10 @@ class TypeformListView(APIView):
         if "error" in data:
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-        answers_list = data.get("items", [])  # Typeform responses
+        answers_list = data.get("responses", {}).get("items", [])
         saved_objects = []
 
         for item in answers_list:
-            answers = item.get("answers", [])
-            transformed_answers = []
-
-            for ans in answers:
-                field_id = ans.get("field", {}).get("id")
-                mapped_name = FIELD_NAME_MAP.get(field_id)
-
-                if mapped_name:
-                    if ans.get("type") == "text":
-                        transformed_answers.append({mapped_name: ans.get("text")})
-                    elif ans.get("type") == "phone_number":
-                        transformed_answers.append({mapped_name: ans.get("phone_number")})
-                    elif ans.get("type") == "email":
-                        transformed_answers.append({mapped_name: ans.get("email")})
-                    elif ans.get("type") == "choices":
-                        transformed_answers.append({mapped_name: ans.get("choices")})
-                else:
-                    transformed_answers.append(ans)  # keep raw if no mapping
-
-            item["answers"] = transformed_answers
-
             obj, created = TypeformAnswer.objects.get_or_create(
                 integration=integration,
                 response_id=item.get("response_id"),
@@ -186,12 +169,15 @@ class TypeformListView(APIView):
                 saved_objects.append(obj)
 
         serializer = TypeformAnswerSerializer(saved_objects, many=True)
+
         return Response({
-            "message": "Typeform responses fetched, mapped, and saved successfully.",
-            "integration_id": integration_id,
-            "integration_name": integration.name,
-            "total_fetched": len(answers_list),
-            "saved_count": len(saved_objects),
-            "typeform_raw_data": data,
-            "saved_data": serializer.data
+        "message": "Typeform responses fetched and saved successfully.",
+        "integration_id": integration_id,
+        "integration_name": integration.name,
+        "total_fetched": len(answers_list),
+        "saved_count": len(saved_objects),
+        "status": "Scouting",
+        "typeform_raw_data": data.get("items", [])[0].get("answers", []) if data.get("items") else [],
+        "saved_data": serializer.data
         }, status=status.HTTP_201_CREATED)
+
