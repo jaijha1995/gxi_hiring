@@ -9,7 +9,6 @@ from .utils.typeform_utils import fetch_typeform_data
 
 logger = logging.getLogger(__name__)
 
-# FIELD_NAME_MAP from your code
 FIELD_NAME_MAP = {
     "first_name": ["GSdr0vI52V2H", "xrMAlvBbMrM9", "C66jIidCS4KW"],
     "last_name": ["K4rp3rvgL1jg", "jsHa09RwZXcj", "8WFGWnAiQbdf"],
@@ -20,10 +19,10 @@ FIELD_NAME_MAP = {
     "JOb_Resposiltes": ["JixBI29gKECC", "lBoTQOD9jtqi", "p2KSFFXGM50P"],
     "Company": ["bZmXYzNyRAar", "qosM9BaQgRiz", "9FgFAzwB9SZT"],
     "Experience": ["ifsjUpya0xNx", "UbICuFB7QLwg", "h9YbJLKgnvz9"],
-    "Notice_Period": ["QDVKrprS7Vah"],  # IGNORE
-    "Joining_date": ["3jaqKHZpq9S6"],  # IGNORE
-    "Higest_degree": ["3hxg9RZ07fY7"],  # IGNORE
-    "Specialization": ["6g6DKtlVy9sc"],  # IGNORE
+    "Notice_Period": ["QDVKrprS7Vah"], 
+    "Joining_date": ["3jaqKHZpq9S6"], 
+    "Higest_degree": ["3hxg9RZ07fY7"], 
+    "Specialization": ["6g6DKtlVy9sc"],
     "University": ["xngwRnnQQfMs"],
     "Percentage": ["TGTO7FjaEGRf"],
     "python": ["GaNy7pqrsc8t"],
