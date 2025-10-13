@@ -149,7 +149,7 @@ def map_answers_grouped(answers):
     """Convert Typeform answer list into grouped section arrays."""
     grouped = {
         "Personal_details": [],
-        "Experience_Education": [],
+        "Experience_details": [],
         "Education_Details": [],
         "Skills": [],
         "Maths_Skills": [],
