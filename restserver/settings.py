@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-%r@^ik71zj1cy72)g)&zd4q$yb@wf)l%4%pm@l744fdt8!1nt@'
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', '65.2.44.234']
+ALLOWED_HOSTS = ['*', '65.2.44.234', 'localhost', '127.0.0.1']
 
 AUTH_USER_MODEL =  'superadmin.UserProfile'
 
@@ -26,7 +26,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'superadmin',
     'google_sheet',
-    'profile_details'
+    'profile_details',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -63,12 +64,12 @@ TEMPLATES = [
 
 
 CHANNEL_LAYERS = {
-    'default' : {
-        'BACKEND' : 'channels_redis.core.RedisChannelLayer',
-        'CONFIG' : {
-            'hosts' : [('127.0.0.1',6379)],
-        }
-    }
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
 }
 
 
@@ -132,6 +133,7 @@ LOGGING = {
 
 
 WSGI_APPLICATION = 'restserver.wsgi.application'
+ASGI_APPLICATION = 'restserver.asgi.application'
 
 
 # Database
