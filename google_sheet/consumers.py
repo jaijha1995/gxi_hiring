@@ -66,7 +66,7 @@ def map_answers_grouped(answers):
     """Maps Typeform answers into grouped sections"""
     grouped = {
         "Personal_details": [],
-        "Experience_Education": [],
+        "Experience_details": [],
         "Education_Details": [],
         "Skills": [],
         "Maths_Skills": [],
