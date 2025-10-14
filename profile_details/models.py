@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from google_sheet.models import TypeformAnswer
 
 class CandidateDetails(models.Model):
     STATUS_CHOICES = [
@@ -9,12 +10,7 @@ class CandidateDetails(models.Model):
         ('recycle', 'Recycle'),
     ]
 
-    TypeformAnswer = models.ForeignKey(
-        'google_sheet.TypeformAnswer',
-        on_delete=models.CASCADE,
-        related_name='candidate_details',
-        db_index=True
-    )
+    TypeformAnswer = models.ForeignKey(TypeformAnswer, on_delete=models.CASCADE, related_name='candidates', db_index=True)
 
     current_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scouting', db_index=True)
     interview_date = models.DateField(null=True, blank=True)

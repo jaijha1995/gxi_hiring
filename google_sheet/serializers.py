@@ -12,18 +12,26 @@ class Hiring_processSerializer(serializers.ModelSerializer):
 
 
 # ============================
-# Old TypeformAnswer (JSON-based)
+# Old TypeformAnswer Serializer (JSON-based)
 # ============================
+# Removed 'answers' field since it doesn't exist in the model anymore
 class TypeformAnswerSerializer(serializers.ModelSerializer):
     integration = Hiring_processSerializer(read_only=True)
 
     class Meta:
         model = TypeformAnswer
-        fields = ["id", "integration", "response_id", "answers", "landed_at", "submitted_at", "created_at"]
+        fields = [
+            "id",
+            "integration",
+            "response_id",
+            "landed_at",
+            "submitted_at",
+            "created_at"
+        ]
 
 
 # ============================
-# New TypeformAnswerDetails (Structured)
+# New TypeformAnswerDetails Serializer (Structured fields)
 # ============================
 class TypeformAnswerDetailsSerializer(serializers.ModelSerializer):
     integration = Hiring_processSerializer(read_only=True)

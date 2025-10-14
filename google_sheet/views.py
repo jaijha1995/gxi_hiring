@@ -212,12 +212,12 @@ class TypeformListView(APIView):
             if integration_name:
                 queryset = queryset.filter(integration__name__icontains=integration_name)
 
-            all_data = []
-            for ans_obj in queryset:
-                ans_obj.answers = map_answers_grouped(ans_obj.answers)
-                all_data.append(ans_obj)
-
-            serializer = TypeformAnswerSerializer(all_data, many=True)
+            # Serialize queryset first, then map/group answers on serialized data
+            serializer = TypeformAnswerSerializer(queryset, many=True)
+            serialized_data = serializer.data
+            for item in serialized_data:
+                if isinstance(item, dict) and item.get("answers") is not None:
+                    item["answers"] = map_answers_grouped(item["answers"])
 
             counts_by_integration = (
                 TypeformAnswer.objects.values("integration__name")
@@ -239,7 +239,7 @@ class TypeformListView(APIView):
                 "filtered_count": queryset.count(),
                 "total_counts": total_counts,
                 "status": "Scouting",
-                "data": serializer.data
+                "data": serialized_data
             }, status=status.HTTP_200_OK)
 
         # ========== CASE: FETCH NEW RESPONSES ==========

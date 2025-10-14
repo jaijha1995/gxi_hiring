@@ -131,3 +131,147 @@ class CandidateStatusHistoryAPIView(APIView):
         serializer = CandidateStatusHistorySerializer(history, many=True)
         cache.set(cache_key, serializer.data, self.CACHE_TIMEOUT)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import CandidateDetails, CandidateStatusHistory
+from .serializers import CandidateDetailsSerializer
+
+
+class ShiftCandidateStatusView(APIView):
+    def post(self, request):
+        """
+        Shortcut to move scouting → ongoing (default)
+        """
+        typeform_answer_id = request.data.get('TypeformAnswer')
+
+        if not typeform_answer_id:
+            return Response(
+                {"error": "TypeformAnswer ID जरूरी है।"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Fetch candidate
+        try:
+            candidate = CandidateDetails.objects.get(TypeformAnswer_id=typeform_answer_id)
+        except CandidateDetails.DoesNotExist:
+            return Response(
+                {"error": f"इस TypeformAnswer ID ({typeform_answer_id}) से कोई candidate नहीं मिला।"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        old_status = candidate.current_status
+
+        if old_status != 'scouting':
+            return Response(
+                {"error": f"केवल 'scouting' से 'ongoing' में shift allowed है। वर्तमान स्थिति: {old_status}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Update candidate
+        candidate.current_status = 'ongoing'
+        if 'interview_date' in request.data:
+            candidate.interview_date = request.data['interview_date']
+        candidate.save()
+
+        # Save history
+        CandidateStatusHistory.objects.create(
+            candidate=candidate,
+            previous_status=old_status,
+            new_status='ongoing'
+        )
+
+        serializer = CandidateDetailsSerializer(candidate)
+        return Response(
+            {"message": "Candidate scouting → ongoing में shift हुआ।", "data": serializer.data},
+            status=status.HTTP_200_OK
+        )
+
+    def patch(self, request):
+        """
+        General status shift using TypeformAnswer ID and new_status
+        """
+        typeform_answer_id = request.data.get('TypeformAnswer')
+        new_status = request.data.get('new_status')
+
+        if not typeform_answer_id:
+            return Response(
+                {"error": "TypeformAnswer ID जरूरी है।"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not new_status:
+            return Response(
+                {"error": "नया status (new_status) जरूरी है।"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Fetch candidate
+        try:
+            candidate = CandidateDetails.objects.get(TypeformAnswer_id=typeform_answer_id)
+        except CandidateDetails.DoesNotExist:
+            return Response(
+                {"error": f"इस TypeformAnswer ID ({typeform_answer_id}) से कोई candidate नहीं मिला।"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        old_status = candidate.current_status
+
+        # Allowed transitions
+        allowed_transitions = {
+            'scouting': ['ongoing', 'recycle'],
+            'ongoing': ['hired', 'recycle'],
+            'hired': [],
+            'recycle': []
+        }
+
+        if new_status not in allowed_transitions.get(old_status, []):
+            return Response(
+                {"error": f"'{old_status}' से '{new_status}' transition allowed नहीं है। Allowed next status: {allowed_transitions.get(old_status)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validation rules
+        if new_status == 'ongoing':
+            if not candidate.interview_date and not request.data.get('interview_date'):
+                return Response(
+                    {"error": "Ongoing status के लिए interview_date जरूरी है।"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        if new_status == 'hired':
+            if not candidate.offer_letter_given and not request.data.get('offer_letter_given', False):
+                return Response(
+                    {"error": "Hired status के लिए offer_letter_given True होना चाहिए।"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if not candidate.joining_date and not request.data.get('joining_date'):
+                return Response(
+                    {"error": "Hired status के लिए joining_date जरूरी है।"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # Update fields if provided
+        for field in ['interview_date', 'offer_letter_given', 'joining_date']:
+            if field in request.data:
+                setattr(candidate, field, request.data[field])
+
+        # Save new status
+        candidate.current_status = new_status
+        candidate.save()
+
+        # Save history
+        CandidateStatusHistory.objects.create(
+            candidate=candidate,
+            previous_status=old_status,
+            new_status=new_status
+        )
+
+        serializer = CandidateDetailsSerializer(candidate)
+        return Response(
+            {"message": f"Candidate '{old_status}' → '{new_status}' में shift हुआ।", "data": serializer.data},
+            status=status.HTTP_200_OK
+        )
