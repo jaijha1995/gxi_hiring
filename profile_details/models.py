@@ -9,9 +9,7 @@ class CandidateDetails(models.Model):
         ('hired', 'Hired'),
         ('recycle', 'Recycle'),
     ]
-
     TypeformAnswer = models.ForeignKey(TypeformAnswer, on_delete=models.CASCADE, related_name='candidates', db_index=True)
-
     current_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scouting', db_index=True)
     interview_date = models.DateField(null=True, blank=True)
     offer_letter_given = models.BooleanField(default=False)

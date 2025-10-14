@@ -27,7 +27,8 @@ INSTALLED_APPS = [
     'superadmin',
     'google_sheet',
     'profile_details',
-    'channels'
+    'channels',
+    'google_form'
 ]
 
 MIDDLEWARE = [

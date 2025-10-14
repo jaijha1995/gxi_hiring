@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 import logging
 
-from .models import CandidateDetails, CandidateStatusHistory
+from .models import CandidateDetails, CandidateStatusHistory, TypeformAnswer
 from .serializers import CandidateDetailsSerializer, CandidateStatusHistorySerializer
 
 logger = logging.getLogger(__name__)
@@ -24,20 +24,40 @@ class CandidateDetailsAPIView(APIView):
     CACHE_TIMEOUT = 60 * 60 * 24  # 24 hours
     pagination_class = StandardResultsSetPagination  # class reference
 
+    def get_candidate_by_response_id(self, response_id):
+        """Helper function to fetch candidate via TypeformAnswer.response_id"""
+        try:
+            typeform_answer = TypeformAnswer.objects.get(response_id=response_id)
+            candidate = CandidateDetails.objects.get(TypeformAnswer=typeform_answer)
+            return candidate
+        except (TypeformAnswer.DoesNotExist, CandidateDetails.DoesNotExist):
+            return None
+
     def get(self, request, pk=None):
-        """GET all candidates or specific candidate by id"""
+        """
+        GET all candidates or specific candidate by response_id
+        """
         if pk:
-            cache_key = f"candidate_{pk}"
+            response_id = pk
+            cache_key = f"candidate_{response_id}"
             cached_data = cache.get(cache_key)
             if cached_data:
                 logger.debug(f"Cache hit for {cache_key}")
                 return Response(cached_data, status=status.HTTP_200_OK)
 
-            candidate = get_object_or_404(CandidateDetails, pk=pk)
+            candidate = self.get_candidate_by_response_id(response_id)
+            if not candidate:
+                return Response(
+                    {"error": f"No candidate found for response_id: {response_id}"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
             serializer = CandidateDetailsSerializer(candidate)
             cache.set(cache_key, serializer.data, self.CACHE_TIMEOUT)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
         else:
+            # List view
             status_filter = request.GET.get('status', 'all')
             page_number = request.GET.get('page', 1)
             cache_key = f"candidate_list_{status_filter}_{page_number}"
@@ -69,8 +89,15 @@ class CandidateDetailsAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
-        """Update candidate status and fields"""
-        candidate = get_object_or_404(CandidateDetails, pk=pk)
+        """Update candidate using response_id"""
+        response_id = pk
+        candidate = self.get_candidate_by_response_id(response_id)
+        if not candidate:
+            return Response(
+                {"error": f"No candidate found for response_id: {response_id}"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         old_status = candidate.current_status
 
         serializer = CandidateDetailsSerializer(candidate, data=request.data, partial=True)
@@ -85,19 +112,26 @@ class CandidateDetailsAPIView(APIView):
                     new_status=new_status
                 )
 
-            self.invalidate_cache(pk)
+            self.invalidate_cache(response_id)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        """Delete candidate"""
-        candidate = get_object_or_404(CandidateDetails, pk=pk)
+        """Delete candidate using response_id"""
+        response_id = pk
+        candidate = self.get_candidate_by_response_id(response_id)
+        if not candidate:
+            return Response(
+                {"error": f"No candidate found for response_id: {response_id}"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         candidate.delete()
-        self.invalidate_cache(pk)
+        self.invalidate_cache(response_id)
         return Response({"message": "Candidate deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
-    def invalidate_cache(self, pk=None):
+    def invalidate_cache(self, response_id=None):
         """Remove cached data for LocMemCache"""
         try:
             # Manually delete candidate list caches
@@ -106,8 +140,8 @@ class CandidateDetailsAPIView(APIView):
                 for key in keys:
                     cache.delete(key)
 
-            if pk:
-                cache.delete(f"candidate_{pk}")
+            if response_id:
+                cache.delete(f"candidate_{response_id}")
         except Exception as e:
             logger.error(f"Cache invalidation failed: {str(e)}")
 

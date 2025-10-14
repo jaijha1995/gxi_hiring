@@ -5,10 +5,19 @@ from .models import Hiring_process, TypeformAnswer
 # ============================
 # Hiring Process Serializer
 # ============================
+
 class Hiring_processSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hiring_process
         fields = ["id", "integration_type", "name", "identifier", "token", "created_at"]
+        read_only_fields = ["id", "created_at"]
+        extra_kwargs = {
+            "token": {"write_only": True}
+        }
+# class Hiring_processSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Hiring_process
+#         fields = ["id", "integration_type", "name", "identifier", "token", "created_at"]
 
 
 # ============================

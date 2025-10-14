@@ -14,12 +14,16 @@ from restserver.utils.typeform_utils import fetch_typeform_data, get_typeform_de
 
 class hiringprocessListView(APIView):
     def get(self, request):
-        integrations = Hiring_process.objects.all()
-        serializer = Hiring_processSerializer(integrations, many=True)
+        # Filter only google_sheet integration_type
+        google_sheets = Hiring_process.objects.filter(integration_type="google_sheet")
+        serializer = Hiring_processSerializer(google_sheets, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = Hiring_processSerializer(data=request.data)
+        # Optional: Only allow creating google_sheet type processes
+        data = request.data.copy()
+        data['integration_type'] = 'google_sheet'  # enforce google_sheet type
+        serializer = HiringProcessSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -110,8 +114,8 @@ FIELD_NAME_MAP = {
     },
     "Education_Details": {
         "Higest_degree": ["3hxg9RZ07fY7", "SIQNHS4UIpzP"],
-        "Specialization": ["6g6DKtlVy9sc"],
-        "University": ["xngwRnnQQfMs"],
+        "Specialization": ["6g6DKtlVy9sc", "k9c1bdTmOGE7"],
+        "University": ["xngwRnnQQfMs", "h5JMpDYhcZu1", "cU4mG6iGnf5i"],
         "Percentage": ["TGTO7FjaEGRf"],
     },
     "Skills": {
@@ -129,6 +133,8 @@ FIELD_NAME_MAP = {
         "Cucumber_rate": ["Mj5nHG6jhES4"],
         "BDD": ["yFsTMFNUPrkm"],
         "BDD_rate": ["nvyx6BuB41Ls"],
+        "MILP": [],
+        "MILP_rate": [""],
     },
     "Maths_Skills": {
         "Linear Programming": ["GtJyOWE18ugq"],
@@ -137,7 +143,15 @@ FIELD_NAME_MAP = {
         "Statistics_and_Probability_rate": ["iW4A9tqh0V5M"],
         "Discrete Mathematics": ["F6CGB3UfonWh"],
         "Discrete Mathematics_rate": ["X1b0Y5y3KX8D"],
+        "Algorithums": [""],
+        "Algorithums_rate": [""],
     },
+    "Avaition_Industry": {
+        "Avaition_experinec": [""],
+        "Avaition_technologices": [""],
+        "Rule_writing_with_jeppenson": [""],
+        "consytaints_in_jeppesen": [""],
+    }
 }
 
 
@@ -191,7 +205,6 @@ def map_answers_grouped(answers):
 
 
 class TypeformListView(APIView):
-    """Fetch Typeform responses, save to DB, and return JSON"""
 
     def get(self, request):
         try:
