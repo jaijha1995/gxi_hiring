@@ -78,20 +78,20 @@ class HiringSheetDataView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# views.py
+import json
+import logging
+from django.utils.dateparse import parse_datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import Count
-
+from asgiref.sync import sync_to_async
 from .models import TypeformAnswer, Hiring_process
-from .serializers import TypeformAnswerSerializer
-from restserver.utils.typeform_utils import fetch_typeform_data
+from .utils.typeform_utils import fetch_typeform_data
 
+logger = logging.getLogger(__name__)
 
-# ===========================
-# FIELD NAME MAP (Categorized)
-# ===========================
-
+# FIELD MAP (same as your consumer)
 FIELD_NAME_MAP = {
     "Personal_details": {
         "first_name": ["GSdr0vI52V2H", "xrMAlvBbMrM9", "C66jIidCS4KW"],
@@ -141,19 +141,15 @@ FIELD_NAME_MAP = {
 }
 
 
-# ==============================
-# GROUPED ANSWER MAPPER FUNCTION
-# ==============================
-
 def map_answers_grouped(answers):
-    """Convert Typeform answer list into grouped section arrays."""
+    """Maps Typeform answers into grouped sections"""
     grouped = {
         "Personal_details": [],
         "Experience_details": [],
         "Education_Details": [],
         "Skills": [],
         "Maths_Skills": [],
-        "Unmapped": [],  # fallback for unknown fields
+        "Unmapped": [],
     }
 
     for ans in answers:
@@ -161,7 +157,6 @@ def map_answers_grouped(answers):
         answer_type = ans.get("type")
         value = None
 
-        # Determine value type
         if answer_type == "text":
             value = ans.get("text")
         elif answer_type == "phone_number":
@@ -179,7 +174,6 @@ def map_answers_grouped(answers):
         elif answer_type == "number":
             value = ans.get("number")
 
-        # Find which group/section this field belongs to
         found = False
         for section, mapping in FIELD_NAME_MAP.items():
             for key, ids in mapping.items():
@@ -193,91 +187,89 @@ def map_answers_grouped(answers):
         if not found:
             grouped["Unmapped"].append({field_id: value})
 
-    # Remove empty categories for cleaner response
-    grouped = {k: v for k, v in grouped.items() if v}
     return grouped
 
 
-# ===========================
-# MAIN API VIEW
-# ===========================
-
 class TypeformListView(APIView):
+    """Fetch Typeform responses, save to DB, and return JSON"""
 
-    def get(self, request, integration_id=None):
-        integration_name = request.query_params.get("name")
-
-        if integration_id is None:
-            queryset = TypeformAnswer.objects.all()
-            if integration_name:
-                queryset = queryset.filter(integration__name__icontains=integration_name)
-
-            # Serialize queryset first, then map/group answers on serialized data
-            serializer = TypeformAnswerSerializer(queryset, many=True)
-            serialized_data = serializer.data
-            for item in serialized_data:
-                if isinstance(item, dict) and item.get("answers") is not None:
-                    item["answers"] = map_answers_grouped(item["answers"])
-
-            counts_by_integration = (
-                TypeformAnswer.objects.values("integration__name")
-                .annotate(count=Count("id"))
-                .order_by()
+    def get(self, request):
+        try:
+            integrations = Hiring_process.objects.filter(
+                integration_type="typeform", token__isnull=False
             )
 
-            total_counts = {
-                item["integration__name"]: item["count"]
-                for item in counts_by_integration
-            }
+            combined_data = []
+            total_new = 0
+            total_count_all = 0
+
+            for integration in integrations:
+                responses = fetch_typeform_data(integration.identifier, integration.token)
+
+                if "error" in responses:
+                    combined_data.append({"integration": integration.identifier, "error": responses["error"]})
+                    continue
+
+                sorted_items = sorted(
+                    responses.get("items", []),
+                    key=lambda x: x.get("submitted_at") or "",
+                    reverse=True,
+                )
+
+                integration_responses = []
+                new_count = 0
+
+                for item in sorted_items:
+                    response_id = item.get("response_id")
+                    mapped_groups = map_answers_grouped(item.get("answers", []))
+                    landed_at = parse_datetime(item.get("landed_at")) if item.get("landed_at") else None
+                    submitted_at = parse_datetime(item.get("submitted_at")) if item.get("submitted_at") else None
+
+                    obj, created = TypeformAnswer.objects.get_or_create(
+                        integration=integration,
+                        response_id=response_id,
+                        defaults={
+                            "answers": mapped_groups,
+                            "landed_at": landed_at,
+                            "submitted_at": submitted_at,
+                        },
+                    )
+
+                    if not created:
+                        # Update existing record if necessary
+                        obj.answers = mapped_groups
+                        obj.landed_at = landed_at
+                        obj.submitted_at = submitted_at
+                        obj.save()
+
+                    if created:
+                        new_count += 1
+                        total_new += 1
+
+                    integration_responses.append({
+                        "response_id": response_id,
+                        "answers_grouped": mapped_groups,
+                        "landed_at": landed_at.isoformat() if landed_at else None,
+                        "submitted_at": submitted_at.isoformat() if submitted_at else None,
+                        "is_new": created,
+                    })
+
+                combined_data.append({
+                    "integration": integration.identifier,
+                    "new_count": new_count,
+                    "total_count": len(integration_responses),
+                    "responses": integration_responses,
+                })
+
+                total_count_all += len(integration_responses)
 
             return Response({
-                "message": (
-                    f"Filtered results for integration name '{integration_name}'"
-                    if integration_name
-                    else "All saved Typeform answers fetched successfully."
-                ),
-                "filtered_count": queryset.count(),
-                "total_counts": total_counts,
-                "status": "Scouting",
-                "data": serialized_data
+                "message": "Typeform responses update (Grouped Mapping)",
+                "total_new_responses": total_new,
+                "total_count_all": total_count_all,
+                "data": combined_data,
             }, status=status.HTTP_200_OK)
 
-        # ========== CASE: FETCH NEW RESPONSES ==========
-
-        try:
-            integration = Hiring_process.objects.get(id=integration_id)
-        except Hiring_process.DoesNotExist:
-            return Response({"error": "Integration not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        data = fetch_typeform_data(integration.identifier, integration.token)
-        if "error" in data:
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-
-        answers_list = data.get("items", [])
-        saved_objects = []
-
-        for item in answers_list:
-            grouped_answers = map_answers_grouped(item.get("answers", []))
-            obj, created = TypeformAnswer.objects.get_or_create(
-                integration=integration,
-                response_id=item.get("response_id"),
-                defaults={
-                    "answers": grouped_answers,
-                    "landed_at": item.get("landed_at"),
-                    "submitted_at": item.get("submitted_at"),
-                },
-            )
-            if created:
-                saved_objects.append(obj)
-
-        serializer = TypeformAnswerSerializer(saved_objects, many=True)
-
-        return Response({
-            "message": "Typeform responses fetched, grouped, and saved successfully.",
-            "integration_id": integration_id,
-            "integration_name": integration.name,
-            "total_fetched": len(answers_list),
-            "saved_count": len(saved_objects),
-            "status": "Scouting",
-            "saved_data": serializer.data
-        }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.error(f"Error in TypeformFetchAPIView: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
