@@ -94,22 +94,22 @@ logger = logging.getLogger(__name__)
 # FIELD MAP (same as your consumer)
 FIELD_NAME_MAP = {
     "Personal_details": {
-        "first_name": ["GSdr0vI52V2H", "xrMAlvBbMrM9", "C66jIidCS4KW"],
-        "last_name": ["K4rp3rvgL1jg", "jsHa09RwZXcj", "8WFGWnAiQbdf"],
-        "phone_number": ["skkeXrAQqfxg", "XBcEyKAmDBCK", "vTNQ6dnhA1tT"],
-        "email": ["PljYRNxTMKTb", "or3Akhg0oKlf", "WFvWBoE3fXey"],
-        "country": ["hfVE1X2KrFdp", "BcmMmw15AJLz", "9RJE2mqcqlBH"],
-        "language": ["eS4GL5ioI4bR", "41qUwfksG32C", "AhyIy57Nai1H"],
+        "first_name": ["GSdr0vI52V2H", "xrMAlvBbMrM9", "C66jIidCS4KW", "uKXUQsmZ6cJr"],
+        "last_name": ["K4rp3rvgL1jg", "jsHa09RwZXcj", "8WFGWnAiQbdf", "nCN7HeprHHr9"],
+        "phone_number": ["skkeXrAQqfxg", "XBcEyKAmDBCK", "vTNQ6dnhA1tT", "dF9NtewEf25V"],
+        "email": ["PljYRNxTMKTb", "or3Akhg0oKlf", "WFvWBoE3fXey", "RlN6ozTiJaMW"],
+        "country": ["hfVE1X2KrFdp", "BcmMmw15AJLz", "9RJE2mqcqlBH", "ZJ0VYDC8AWsB"],
+        "language": ["eS4GL5ioI4bR", "41qUwfksG32C", "AhyIy57Nai1H", "mxov3ND9DZcq"],
         "JOb_Resposiltes": ["JixBI29gKECC", "lBoTQOD9jtqi", "p2KSFFXGM50P"],
         "Company": ["bZmXYzNyRAar", "qosM9BaQgRiz", "9FgFAzwB9SZT"],
     },
     "Experience_details": {
         "Experience": ["ifsjUpya0xNx", "UbICuFB7QLwg", "h9YbJLKgnvz9"],
         "Notice_Period": ["QDVKrprS7Vah"],
-        "Joining_date": ["3jaqKHZpq9S6"],
+        "Joining_date": ["3jaqKHZpq9S6", "nfXN5M9tsoEp"],
     },
     "Education_Details": {
-        "Higest_degree": ["3hxg9RZ07fY7"],
+        "Higest_degree": ["3hxg9RZ07fY7", "SIQNHS4UIpzP"],
         "Specialization": ["6g6DKtlVy9sc"],
         "University": ["xngwRnnQQfMs"],
         "Percentage": ["TGTO7FjaEGRf"],
