@@ -213,7 +213,7 @@ class TypeformListView(APIView):
                 sorted_items = sorted(
                     responses.get("items", []),
                     key=lambda x: x.get("submitted_at") or "",
-                    reverse=True,
+                    reverse=True,  # DESC
                 )
 
                 integration_responses = []
@@ -236,7 +236,6 @@ class TypeformListView(APIView):
                     )
 
                     if not created:
-                        # Update existing record if necessary
                         obj.answers = mapped_groups
                         obj.landed_at = landed_at
                         obj.submitted_at = submitted_at
@@ -248,11 +247,17 @@ class TypeformListView(APIView):
 
                     integration_responses.append({
                         "response_id": response_id,
-                        "answers_grouped": mapped_groups,
+                        "answers": mapped_groups,
                         "landed_at": landed_at.isoformat() if landed_at else None,
                         "submitted_at": submitted_at.isoformat() if submitted_at else None,
                         "is_new": created,
                     })
+
+                # Order the integration_responses by submitted_at DESC before appending
+                integration_responses.sort(
+                    key=lambda x: x["submitted_at"] or "",
+                    reverse=True
+                )
 
                 combined_data.append({
                     "integration": integration.identifier,
@@ -264,12 +269,12 @@ class TypeformListView(APIView):
                 total_count_all += len(integration_responses)
 
             return Response({
-                "message": "Typeform responses update (Grouped Mapping)",
+                "message": "Typeform responses update (Grouped Mapping, DESC order)",
                 "total_new_responses": total_new,
                 "total_count_all": total_count_all,
                 "data": combined_data,
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
-            logger.error(f"Error in TypeformFetchAPIView: {e}")
+            logger.error(f"Error in TypeformListView: {e}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
