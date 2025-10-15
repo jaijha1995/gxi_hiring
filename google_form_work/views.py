@@ -27,31 +27,32 @@ class GoogleSheetAPIView(APIView):
 from django.core.cache import cache
 class GoogleFormResponsesAPIView(APIView):
     def get(self, request, sheet_id):
+        response_id = request.query_params.get("response_id", None)
+
         try:
             sheet = GoogleSheet.objects.get(sheet_id=sheet_id)
-            cache_key = f"google_form_responses_{sheet_id}"
-            cached_data = cache.get(cache_key)
-            if cached_data:
-                return Response(cached_data)
-            responses = fetch_google_form_responses(sheet.sheet_id)
+
+            # Fetch live data from Google Sheet
+            responses_raw = fetch_google_form_responses(sheet.sheet_id)
             saved_responses = []
 
-            for r in responses:
-                response_id = r.get('Timestamp') or str(hash(frozenset(r.items())))
-                obj, created = GoogleFormResponse.objects.get_or_create(
+            for r in responses_raw:
+                resp_id = r.get('Timestamp') or str(hash(frozenset(r.items())))
+                obj, _ = GoogleFormResponse.objects.get_or_create(
                     sheet=sheet,
-                    response_id=response_id,
+                    response_id=resp_id,
                     defaults={'data': r}
                 )
                 saved_responses.append(obj)
 
             serializer = GoogleFormResponseSerializer(saved_responses, many=True)
-            response_data = serializer.data
+            responses = serializer.data
 
-            # Save to cache for 24 hours
-            cache.set(cache_key, response_data, timeout=86400)
+            # Filter by response_id if provided
+            if response_id:
+                responses = [r for r in responses if str(r.get("id")) == str(response_id)]
 
-            return Response(response_data)
+            return Response(responses, status=status.HTTP_200_OK)
 
         except GoogleSheet.DoesNotExist:
             return Response({'error': 'Sheet not found'}, status=status.HTTP_404_NOT_FOUND)

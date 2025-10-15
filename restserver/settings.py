@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     'google_sheet',
     'profile_details',
     'channels',
-    'google_form',
     'google_form_work'
 ]
 
@@ -149,8 +148,18 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+# settings.py
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',   # Use PostgreSQL backend
+#         'NAME': 'Gxi_Hiring',                             # Database name
+#         'USER': 'postgres',                          # PostgreSQL username
+#         'PASSWORD': '140806',                        # PostgreSQL password
+#         'HOST': 'localhost',                         # Database host (use IP if remote)
+#         'PORT': '5432',                              # Default PostgreSQL port
+#     }
+# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
