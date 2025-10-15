@@ -28,7 +28,8 @@ INSTALLED_APPS = [
     'google_sheet',
     'profile_details',
     'channels',
-    'google_form'
+    'google_form',
+    'google_form_work'
 ]
 
 MIDDLEWARE = [
@@ -197,11 +198,23 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",  # For development only
+#         "LOCATION": "unique-snowflake",
+#         "TIMEOUT": None,
+#     }
+# }
+
+
 CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",  # For development only
-        "LOCATION": "unique-snowflake",
-        "TIMEOUT": None,
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'cache'),
+        'TIMEOUT': 20,  # 24 hours (in seconds)
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
     }
 }
 

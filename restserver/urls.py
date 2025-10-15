@@ -7,4 +7,5 @@ urlpatterns = [
     path('api/google_sheet/', include('google_sheet.urls')),
     path('api/profile_details/', include('profile_details.urls')),
     path('api/google_form/', include('google_form.urls')),
+    path('api/google_form_work/', include('google_form_work.urls')),
 ]
