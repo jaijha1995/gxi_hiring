@@ -2,9 +2,9 @@ from rest_framework import serializers
 from .models import UserProfile
 from rest_framework.exceptions import ValidationError
 from django.core.validators import validate_email
-from .utils import CustomLogger, send_email
+# from .utils import CustomLogger, send_email
 
-logger = CustomLogger('restserver', filename='auth.log')
+# logger = CustomLogger('restserver', filename='auth.log')
 
 
 
