@@ -155,7 +155,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',   # Use PostgreSQL backend
         'NAME': 'Gxi_Hiring',                             # Database name
         'USER': 'postgres',                          # PostgreSQL username
-        'PASSWORD': '140806',                        # PostgreSQL password
+        'PASSWORD': 'Xperts@123',                        # PostgreSQL password
         'HOST': 'localhost',                         # Database host (use IP if remote)
         'PORT': '5432',                              # Default PostgreSQL port
     }

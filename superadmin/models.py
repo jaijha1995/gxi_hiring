@@ -4,8 +4,6 @@ from django.utils import timezone
 
 
 # -----------------------
-# Custom User Manager
-# -----------------------
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, role='ExternalUser', **extra_fields):
         """Create and save a regular user with the given email and password."""
