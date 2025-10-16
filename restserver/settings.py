@@ -140,26 +140,26 @@ ASGI_APPLICATION = 'restserver.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 
 # settings.py
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',   # Use PostgreSQL backend
-        'NAME': 'Gxi_Hiring',                             # Database name
-        'USER': 'postgres',                          # PostgreSQL username
-        'PASSWORD': '140806',                        # PostgreSQL password
-        'HOST': 'localhost',                         # Database host (use IP if remote)
-        'PORT': '5432',                              # Default PostgreSQL port
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',   # Use PostgreSQL backend
+#         'NAME': 'Gxi_Hiring',                             # Database name
+#         'USER': 'postgres',                          # PostgreSQL username
+#         'PASSWORD': '140806',                        # PostgreSQL password
+#         'HOST': 'localhost',                         # Database host (use IP if remote)
+#         'PORT': '5432',                              # Default PostgreSQL port
+#     }
+# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
