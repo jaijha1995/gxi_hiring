@@ -140,26 +140,26 @@ ASGI_APPLICATION = 'restserver.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # settings.py
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',   # Use PostgreSQL backend
-#         'NAME': 'Gxi_Hiring',                             # Database name
-#         'USER': 'postgres',                          # PostgreSQL username
-#         'PASSWORD': '140806',                        # PostgreSQL password
-#         'HOST': 'localhost',                         # Database host (use IP if remote)
-#         'PORT': '5432',                              # Default PostgreSQL port
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',   # Use PostgreSQL backend
+        'NAME': 'Gxi_Hiring',                             # Database name
+        'USER': 'postgres',                          # PostgreSQL username
+        'PASSWORD': '140806',                        # PostgreSQL password
+        'HOST': 'localhost',                         # Database host (use IP if remote)
+        'PORT': '5432',                              # Default PostgreSQL port
+    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -244,13 +244,12 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'jaijhavats32@gmail.com'
-
-EMAIL_HOST_PASSWORD = 'esau spga ckkb ncof'
-DEFAULT_FROM_EMAIL = 'jaijhavats32@gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'                 # Gmail SMTP server
+EMAIL_PORT = 587                              # Port for TLS
+EMAIL_USE_TLS = True                          # Use TLS
+EMAIL_HOST_USER = 'atul@mioneer.in'      # Your Gmail address
+EMAIL_HOST_PASSWORD = 'udga euzi cpal gfnu'     # Gmail app password (not your regular password)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 
