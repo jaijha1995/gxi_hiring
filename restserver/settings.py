@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-%r@^ik71zj1cy72)g)&zd4q$yb@wf)l%4%pm@l744fdt8!1nt@'
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', '65.2.44.234', 'localhost', '127.0.0.1', '13.233.246.56', '13.233.201.179']
+ALLOWED_HOSTS = ['*', '65.2.44.234', 'localhost', '127.0.0.1', '13.233.246.56', '13.233.201.179', '192.168.10.194']
 
 AUTH_USER_MODEL =  'superadmin.UserProfile'
 
@@ -142,8 +142,12 @@ ASGI_APPLICATION = 'restserver.asgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',   # Use PostgreSQL backend
+        'NAME': 'gxi_hiring',                             # Database name
+        'USER': 'gxi',                          # PostgreSQL username
+        'PASSWORD': '140806',                        # PostgreSQL password
+        'HOST': '13.234.77.222',                         # Database host (use IP if remote)
+        'PORT': '5432',                              # Default PostgreSQL port
     }
 }
 
