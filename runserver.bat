@@ -1,4 +1,4 @@
-python manage.py runserver 192.168.10.194:8085
+python manage.py runserver 192.168.1.74:8085
 
 celery -A restserver worker -l info -c 10 
 
