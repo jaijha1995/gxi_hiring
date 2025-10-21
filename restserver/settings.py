@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'google_sheet',
     'profile_details',
     'channels',
+    'candidate_form',
     'google_form_work'
 ]
 
@@ -269,6 +270,15 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 # EMAIL_HOST_PASSWORD = 'KCfAFH7xjHQ8'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.office365.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL =False
+EMAIL_HOST_USER = 'noreply@gxinetworks.com'
+EMAIL_HOST_PASSWORD = 'August@082024'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOOGLE_SHEETS_CREDENTIALS_FILE = os.path.join(BASE_DIR, "gxihiring-d7185498ec0f.json")
