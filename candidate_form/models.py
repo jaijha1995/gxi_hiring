@@ -51,14 +51,14 @@ class ApplicationForm(models.Model):
     current_phase = models.CharField(max_length=50, choices=PHASE_CHOICES, default=PHASE_FIRST, db_index=True)
     status = models.CharField(max_length=30, default=STATUS_SUBMITTED, db_index=True)
     assigned_to = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        UserProfile,
         null=True, blank=True,
         on_delete=models.SET_NULL,
         related_name="assigned_submissions"
     )
 
     last_action_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        UserProfile,
         null=True, blank=True,
         on_delete=models.SET_NULL,
         related_name="last_actions"
