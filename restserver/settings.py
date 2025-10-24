@@ -135,7 +135,6 @@ LOGGING = {
 WSGI_APPLICATION = 'restserver.wsgi.application'
 ASGI_APPLICATION = 'restserver.asgi.application'
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql', 
