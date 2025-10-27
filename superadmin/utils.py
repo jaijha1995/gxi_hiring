@@ -95,13 +95,13 @@ def send_otp_email(email, otp):
 
 
 
-def send_welcome_email(self, email):
-        subject = 'Welcome to YourApp!'
-        html_message = render_to_string('welcome_email_template.html', {'email': email})
-        plain_message = strip_tags(html_message)
-        from_email = 'jai@skylabstech.com'  # Replace with your email
-        recipient_list = [email]
-
-        email = EmailMessage(subject, plain_message, from_email, recipient_list)
-        email.content_subtype = "html"
-        email.send()
+def send_welcome_email(email, first_name, last_name):
+    subject = 'Welcome to Gxi Hiring'
+    html_message = render_to_string('welcome_email_template.html', {
+        'email': email,
+        'first_name': first_name,
+        'last_name': last_name,
+        'password': password,
+    })
+    plain_message = strip_tags(html_message)
+    send_mail(subject, plain_message, 'jaijhavats32@gmail.com', [email], html_message=html_message)

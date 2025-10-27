@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-%r@^ik71zj1cy72)g)&zd4q$yb@wf)l%4%pm@l744fdt8!1nt@'
 DEBUG = True
@@ -28,6 +27,7 @@ INSTALLED_APPS = [
     'google_sheet',
     'profile_details',
     'channels',
+    'candidate_form',
     'google_form_work'
 ]
 
@@ -140,34 +140,16 @@ LOGGING = {
 WSGI_APPLICATION = 'restserver.wsgi.application'
 ASGI_APPLICATION = 'restserver.asgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',   # Use PostgreSQL backend
-        'NAME': 'gxi_hiring',                             # Database name
-        'USER': 'gxi',                          # PostgreSQL username
-        'PASSWORD': '140806',                        # PostgreSQL password
-        'HOST': '13.234.77.222',                         # Database host (use IP if remote)
-        'PORT': '5432',                              # Default PostgreSQL port
+        'ENGINE': 'django.db.backends.postgresql', 
+        'NAME': 'gxi_hiring',                          
+        'USER': 'gxi',                
+        'PASSWORD': '140806',                
+        'HOST': '13.234.77.222',                  
+        'PORT': '5432', 
     }
 }
-
-
-# settings.py
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',   # Use PostgreSQL backend
-#         'NAME': 'Gxi_Hiring',                             # Database name
-#         'USER': 'postgres',                          # PostgreSQL username
-#         'PASSWORD': '140806',                        # PostgreSQL password
-#         'HOST': 'localhost',                         # Database host (use IP if remote)
-#         'PORT': '5432',                              # Default PostgreSQL port
-#     }
-# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -183,12 +165,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
-
 CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
 CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
 CELERY_ACCEPT_CONTENT = ['json']
@@ -201,27 +177,10 @@ USE_I18N = True
 TIME_ZONE = 'Asia/Kolkata'
 USE_TZ = True
 
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",  # For development only
-#         "LOCATION": "unique-snowflake",
-#         "TIMEOUT": None,
-#     }
-# }
 
 
 CACHES = {
@@ -236,47 +195,17 @@ CACHES = {
 }
 
 
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://127.0.0.1:6379/1",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#         }
-#     }
-# }
-
-
-
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'                 # Gmail SMTP server
-EMAIL_PORT = 587                              # Port for TLS
-EMAIL_USE_TLS = True                          # Use TLS
-EMAIL_HOST_USER = 'atul@mioneer.in'      # Your Gmail address
-EMAIL_HOST_PASSWORD = 'udga euzi cpal gfnu'     # Gmail app password (not your regular password)
+EMAIL_HOST = 'smtp.office365.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL =False
+EMAIL_HOST_USER = 'noreply@gxinetworks.com'
+EMAIL_HOST_PASSWORD = 'August@082024'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-
-
-
-
-# settings.py
-
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.zoho.com'
-# EMAIL_PORT = 465
-# EMAIL_USE_SSL = True
-# EMAIL_USE_TLS = False
-# EMAIL_HOST_USER = 'jaijhavats@zohomail.in'
-# EMAIL_HOST_PASSWORD = 'DrgWJwmYQBXJ'  # Use App Password
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-
-
-# EMAIL_HOST_PASSWORD = 'KCfAFH7xjHQ8'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOOGLE_SHEETS_CREDENTIALS_FILE = os.path.join(BASE_DIR, "gxihiring-d7185498ec0f.json")

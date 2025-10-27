@@ -13,29 +13,10 @@ from django.contrib.auth.hashers import make_password
 
 from .models import UserProfile
 from .serializers import UserSerializer, UserListSerializer
-from .utils import generate_otp, send_otp_email  # keep your existing utils
-
-
-def send_welcome_email(email, first_name, last_name):
-    subject = 'Welcome to Gxi Hiring'
-    html_message = render_to_string('welcome_email_template.html', {
-        'email': email,
-        'first_name': first_name,
-        'last_name': last_name,
-    })
-    plain_message = strip_tags(html_message)
-    send_mail(subject, plain_message, 'jaijhavats32@gmail.com', [email], html_message=html_message)
+from .utils import generate_otp, send_otp_email  , send_welcome_email
 
 
 class CustomerViews(APIView):
-    """
-    POST /api/signup/
-    - If no users exist: create SuperAdmin (open)
-    - Else: require JWT auth + payload must include creator id and authenticated user must match creator id
-      Manager -> requires "superadmin_id" (and request.user must be that superadmin)
-      HR -> requires "manager_id" (and request.user must be that manager)
-      ExternalUser -> requires "superadmin_id" (and request.user must be that superadmin)
-    """
     authentication_classes = [JWTAuthentication]
     permission_classes = [AllowAny]  # we handle auth logic below
 
@@ -48,7 +29,7 @@ class CustomerViews(APIView):
             if not serializer.is_valid():
                 return Response({"status": "failure", "errors": serializer.errors}, status=400)
             user = serializer.save(role=UserProfile.ROLE_SUPERADMIN)
-            send_welcome_email(user.email, user.first_name or '', user.last_name or '')
+            send_welcome_email(user.email, user.first_name or '', user.last_name or '' , user.password or '')
             return Response({"status": "success", "msg": "SuperAdmin created", "data": UserSerializer(user).data}, status=201)
 
         # 2) Subsequent signups require auth
@@ -104,7 +85,7 @@ class CustomerViews(APIView):
             created_by_superadmin=created_by_superadmin,
             created_by_manager=created_by_manager
         )
-        send_welcome_email(user.email, user.first_name or '', user.last_name or '')
+        send_welcome_email(user.email, user.first_name or '', user.last_name or '', user.password or '')
         return Response({"status": "success", "msg": f"{role} created successfully", "data": UserSerializer(user).data}, status=201)
 
 

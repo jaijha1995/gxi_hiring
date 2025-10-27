@@ -1,4 +1,6 @@
-python manage.py runserver 192.168.1.74:8085
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver 127.0.0.1:8080
 
 celery -A restserver worker -l info -c 10 
 
