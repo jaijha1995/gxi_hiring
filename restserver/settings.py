@@ -28,7 +28,8 @@ INSTALLED_APPS = [
     'profile_details',
     'channels',
     'candidate_form',
-    'google_form_work'
+    'google_form_work',
+    'form_data',
 ]
 
 MIDDLEWARE = [

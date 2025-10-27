@@ -1,0 +1,49 @@
+{
+    "Name": "jai nath jha",
+    "Email": "",
+    "Phone": "",
+    "Location": "Delhi",
+    "Country": "India",
+    "State": "Delhi",
+    "Education": "Master's Degree",
+    "Specialisation": "Entry Gate",
+    "University": "Wave32",
+    "CGPA/Percentage": "8",
+    "Experience (Years)": 6,
+    "Role": "python",
+    "Organisation": "GXI",
+    "Serving Notice Period": "Yes",
+    "Last Working Day": "2025-10-24",
+    "Notice Period Days": null,
+    "Skills": [
+        "Python",
+        "Machine Learning"
+    ],
+    "Languages Known": [
+        "English",
+        "Hindi",
+        "French"
+    ],
+    "Tech_Experience": {
+        "RAVE": {
+            "experience": "Yes",
+            "rating": 3
+        },
+        "Python": {
+            "experience": "Yes",
+            "rating": 4
+        },
+        "RDBMS": {
+            "experience": "Yes",
+            "rating": 3
+        },
+        "Machine Learning": {
+            "experience": "Yes",
+            "rating": 3
+        },
+        "R": {
+            "experience": "Yes",
+            "rating": 3
+        }
+    }
+}
