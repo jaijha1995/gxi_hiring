@@ -100,8 +100,7 @@ def send_welcome_email(email, first_name, last_name):
     html_message = render_to_string('welcome_email_template.html', {
         'email': email,
         'first_name': first_name,
-        'last_name': last_name,
-        'password': password,
+        'last_name': last_name
     })
     plain_message = strip_tags(html_message)
     send_mail(subject, plain_message, 'jaijhavats32@gmail.com', [email], html_message=html_message)
