@@ -6,6 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from .config import Config
+from django.core.mail import send_mail
 from restserver.settings import DEFAULT_FROM_EMAIL, EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
 
 
@@ -50,7 +51,7 @@ class CustomLogger:
             self.log("error", "Error recipient email not configured.")
             return
 
-        send_email(subject, body, attachments, error_recipient)
+        send_mail(subject, body, attachments, error_recipient)
 
 
 def send_email(to_email, subject, message):
