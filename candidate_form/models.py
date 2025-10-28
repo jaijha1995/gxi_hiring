@@ -3,12 +3,8 @@ from django.conf import settings
 from django.utils import timezone
 from profile_details.models import CandidateDetails
 from superadmin.models import UserProfile
-
-
-# If using Postgres, you can add GinIndex below
 from django.contrib.postgres.indexes import GinIndex
 
-# Phase choices
 PHASE_FIRST = "first_round"
 PHASE_SECOND = "second_round"
 PHASE_THIRD = "third_round"
@@ -24,8 +20,6 @@ PHASE_CHOICES = [
 ]
 
 STATUS_SUBMITTED = "submitted"
-
-# Optional action choices for stricter validation
 ACTION_SUBMITTED = "submitted"
 ACTION_PHASE_CHANGE = "phase_change"
 ACTION_ASSIGNED = "assigned"
