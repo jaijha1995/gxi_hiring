@@ -104,4 +104,4 @@ def send_welcome_email(email, first_name, last_name):
         'last_name': last_name
     })
     plain_message = strip_tags(html_message)
-    send_mail(subject, plain_message, 'jaijhavats32@gmail.com', [email], html_message=html_message)
+    send_mail(subject, plain_message, '', [email], html_message=html_message)
