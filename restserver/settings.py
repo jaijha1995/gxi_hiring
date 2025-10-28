@@ -147,7 +147,7 @@ DATABASES = {
         'NAME': 'gxi_hiring',                          
         'USER': 'gxi',                
         'PASSWORD': '140806',                
-        'HOST': '13.234.77.222',                  
+        'HOST': '3.85.242.139',                  
         'PORT': '5432', 
     }
 }
