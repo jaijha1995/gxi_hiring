@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-%r@^ik71zj1cy72)g)&zd4q$yb@wf)l%4%pm@l744fdt8!1nt@'
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', '65.2.44.234', 'localhost', '127.0.0.1', '13.233.246.56', '13.233.201.179', '192.168.10.194']
+ALLOWED_HOSTS = ['*', '3.85.242.139', 'localhost', '127.0.0.1', '13.233.246.56', '13.233.201.179', '192.168.10.194', 'gxi_hiring.jaijhavats.info',]
 
 AUTH_USER_MODEL =  'superadmin.UserProfile'
 
@@ -28,7 +28,8 @@ INSTALLED_APPS = [
     'profile_details',
     'channels',
     'candidate_form',
-    'google_form_work'
+    'google_form_work',
+    'form_data',
 ]
 
 MIDDLEWARE = [
@@ -63,6 +64,10 @@ TEMPLATES = [
     },
 ]
 
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://gxi_hiring.jaijhavats.info/'
+]
 
 CHANNEL_LAYERS = {
     "default": {
@@ -142,7 +147,7 @@ DATABASES = {
         'NAME': 'gxi_hiring',                          
         'USER': 'gxi',                
         'PASSWORD': '140806',                
-        'HOST': '13.234.77.222',                  
+        'HOST': '3.85.242.139',                  
         'PORT': '5432', 
     }
 }

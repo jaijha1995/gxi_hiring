@@ -6,6 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from .config import Config
+from django.core.mail import send_mail
 from restserver.settings import DEFAULT_FROM_EMAIL, EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
 
 
@@ -50,7 +51,7 @@ class CustomLogger:
             self.log("error", "Error recipient email not configured.")
             return
 
-        send_email(subject, body, attachments, error_recipient)
+        send_mail(subject, body, attachments, error_recipient)
 
 
 def send_email(to_email, subject, message):
@@ -100,8 +101,31 @@ def send_welcome_email(email, first_name, last_name):
     html_message = render_to_string('welcome_email_template.html', {
         'email': email,
         'first_name': first_name,
-        'last_name': last_name,
-        'password': password,
+        'last_name': last_name
     })
     plain_message = strip_tags(html_message)
-    send_mail(subject, plain_message, 'jaijhavats32@gmail.com', [email], html_message=html_message)
+    send_mail(subject, plain_message, '', [email], html_message=html_message)
+
+
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
+def send_status_email(email, name, status_value):
+    """Send status update email to candidate."""
+    subject = f"Your application status: {status_value.title()}"
+    context = {
+        "name": name,
+        "status": status_value.title()
+    }
+    html_message = render_to_string('status_update_template.html', context)
+    plain_message = strip_tags(html_message)
+
+    send_mail(
+        subject,
+        plain_message,
+        'no-reply@gxihiring.com',  # Replace with your verified sender email
+        [email],
+        html_message=html_message,
+        fail_silently=False,
+    )

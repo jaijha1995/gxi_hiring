@@ -29,7 +29,7 @@ class CustomerViews(APIView):
             if not serializer.is_valid():
                 return Response({"status": "failure", "errors": serializer.errors}, status=400)
             user = serializer.save(role=UserProfile.ROLE_SUPERADMIN)
-            send_welcome_email(user.email, user.first_name or '', user.last_name or '' , user.password or '')
+            send_welcome_email(user.email, user.first_name or '', user.last_name or '')
             return Response({"status": "success", "msg": "SuperAdmin created", "data": UserSerializer(user).data}, status=201)
 
         # 2) Subsequent signups require auth
@@ -85,7 +85,7 @@ class CustomerViews(APIView):
             created_by_superadmin=created_by_superadmin,
             created_by_manager=created_by_manager
         )
-        send_welcome_email(user.email, user.first_name or '', user.last_name or '', user.password or '')
+        send_welcome_email(user.email, user.first_name or '', user.last_name or '')
         return Response({"status": "success", "msg": f"{role} created successfully", "data": UserSerializer(user).data}, status=201)
 
 
