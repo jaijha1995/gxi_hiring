@@ -4,11 +4,48 @@ from rest_framework import status
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils import timezone
+from django.core.mail import send_mail
 from .models import FormData
 from .serializers import FormDataSerializer
 
 
 class FormDataAPIView(APIView):
+    def send_status_email(self, candidate_email, candidate_name, current_status, phase=None,
+                          interview_date=None, interview_time=None, joining_date=None):
+        if not candidate_email:
+            return
+
+        subject = f"Update: Your Application Status - {current_status}"
+        message = f"Dear {candidate_name},\n\n"
+        message += f"We wanted to inform you that your application status has been updated.\n"
+        message += f"➡️ Current Status: {current_status}\n"
+
+        if phase:
+            message += f"➡️ Interview Phase: {phase}\n"
+
+        if interview_date and interview_time:
+            message += f"📅 Interview Scheduled on: {interview_date} at {interview_time}\n"
+
+        if joining_date:
+            message += f"🎉 Your Joining Date: {joining_date}\n"
+
+        message += "\nThank you for your time and interest in joining our team.\n"
+        message += "Best regards,\nGXI Networks HR Team"
+
+        try:
+            send_mail(
+                subject,
+                message,
+                '',  # Replace with DEFAULT_FROM_EMAIL
+                [candidate_email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"⚠️ Email send failed to {candidate_email}: {e}")
+
+    # ================================
+    # GET METHOD
+    # ================================
     def get(self, request, pk=None):
         try:
             if pk:
@@ -21,29 +58,24 @@ class FormDataAPIView(APIView):
                 serializer = FormDataSerializer(form)
                 return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
 
-            # Filters
             search_query = request.query_params.get('search', None)
             form_name = request.query_params.get('form_name', None)
             sort_by = request.query_params.get('sort_by', '-submitted_at')
 
             forms = FormData.objects.all()
-
             if form_name:
                 forms = forms.filter(form_name__icontains=form_name)
-
             if search_query:
                 forms = forms.filter(
                     Q(form_name__icontains=search_query) |
                     Q(submission_data__icontains=search_query)
                 )
 
-            # Sorting
             valid_sort_fields = ['form_name', 'submitted_at']
             if sort_by.lstrip('-') not in valid_sort_fields:
                 sort_by = '-submitted_at'
             forms = forms.order_by(sort_by)
 
-            # Pagination
             page = request.query_params.get('page', 1)
             page_size = int(request.query_params.get('page_size', 10))
             paginator = Paginator(forms, page_size)
@@ -72,6 +104,9 @@ class FormDataAPIView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    # ================================
+    # POST METHOD
+    # ================================
     def post(self, request):
         serializer = FormDataSerializer(data=request.data)
         if serializer.is_valid():
@@ -86,6 +121,9 @@ class FormDataAPIView(APIView):
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
+    # ================================
+    # PUT METHOD (UPDATED)
+    # ================================
     def put(self, request, pk):
         try:
             form = FormData.objects.get(pk=pk)
@@ -105,12 +143,14 @@ class FormDataAPIView(APIView):
         interview_time = request.data.get("interview_time")
         offer_letter_date = request.data.get("offer_letter_date")
         joining_date = request.data.get("joining_date")
-        phase = request.data.get("phase")  # interview phase/round
+        phase = request.data.get("phase")
         note = request.data.get("note")
+
+        candidate_name = submission_data.get("Name")
+        candidate_email = submission_data.get("Email")
 
         timestamp = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # Default status setup
         if not old_status:
             submission_data["status"] = "Scouting"
 
@@ -131,6 +171,8 @@ class FormDataAPIView(APIView):
                 submission_data["status"] = "Reject"
                 submission_data["reject_reason"] = reject_reason
 
+                self.send_status_email(candidate_email, candidate_name, "Reject")
+
             elif new_status == "Ongoing":
                 if not interview_date or not interview_time:
                     return Response(
@@ -148,6 +190,8 @@ class FormDataAPIView(APIView):
                 submission_data["status"] = "Ongoing"
                 submission_data["phase"] = phase or "First Round"
 
+                self.send_status_email(candidate_email, candidate_name, "Ongoing", phase, interview_date, interview_time)
+
             else:
                 return Response(
                     {"status": "error", "message": "Invalid transition from Scouting. Must be 'Ongoing' or 'Reject'."},
@@ -157,7 +201,6 @@ class FormDataAPIView(APIView):
         # === ONGOING ===
         elif old_status == "Ongoing":
             if new_status == "Hired":
-                # Candidate selected → move to Hired
                 if not offer_letter_date or not joining_date:
                     return Response(
                         {"status": "error", "message": "Offer letter release date and joining date required to mark as Hired."},
@@ -175,8 +218,9 @@ class FormDataAPIView(APIView):
                 submission_data["joining_date"] = joining_date
                 submission_data["phase"] = "Final Selection"
 
+                self.send_status_email(candidate_email, candidate_name, "Hired", "Final Selection", joining_date=joining_date)
+
             else:
-                # Still in Ongoing — add interview rounds
                 history_entry = {
                     "from": "Ongoing",
                     "to": new_status or "Ongoing",
@@ -192,33 +236,21 @@ class FormDataAPIView(APIView):
                 submission_data["status"] = "Ongoing"
                 submission_data["phase"] = phase or "Next Round"
 
-        # === REJECTED ===
+                self.send_status_email(candidate_email, candidate_name, "Ongoing", phase, interview_date, interview_time)
+
         elif old_status == "Reject":
             return Response(
                 {"status": "error", "message": "Cannot change status after rejection."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # === HIRED ===
         elif old_status == "Hired":
             return Response(
                 {"status": "error", "message": "Candidate already hired. No further changes allowed."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # === Generic fallback ===
-        else:
-            if new_status and new_status != old_status:
-                submission_data.setdefault("status_history", []).append({
-                    "from": old_status,
-                    "to": new_status,
-                    "phase": phase,
-                    "updated_at": timestamp
-                })
-                submission_data["status"] = new_status
-                submission_data["phase"] = phase
-
-        # --- Notes handling ---
+        # === Notes ===
         if note:
             submission_data.setdefault("notes_history", []).append({
                 "note": note,
@@ -226,7 +258,6 @@ class FormDataAPIView(APIView):
             })
             submission_data["note"] = note
 
-        # --- Save ---
         form.submission_data = submission_data
         form.save()
 
