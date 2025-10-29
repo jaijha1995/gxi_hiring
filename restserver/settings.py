@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'candidate_form',
     'google_form_work',
     'form_data',
+    'create_job'
 ]
 
 MIDDLEWARE = [
