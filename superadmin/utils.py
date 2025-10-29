@@ -105,3 +105,27 @@ def send_welcome_email(email, first_name, last_name):
     })
     plain_message = strip_tags(html_message)
     send_mail(subject, plain_message, '', [email], html_message=html_message)
+
+
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
+def send_status_email(email, name, status_value):
+    """Send status update email to candidate."""
+    subject = f"Your application status: {status_value.title()}"
+    context = {
+        "name": name,
+        "status": status_value.title()
+    }
+    html_message = render_to_string('status_update_template.html', context)
+    plain_message = strip_tags(html_message)
+
+    send_mail(
+        subject,
+        plain_message,
+        'no-reply@gxihiring.com',  # Replace with your verified sender email
+        [email],
+        html_message=html_message,
+        fail_silently=False,
+    )

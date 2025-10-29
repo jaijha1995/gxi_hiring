@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Status Update</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; }
+        .container { max-width: 600px; margin: auto; background: white; border-radius: 8px; padding: 20px; }
+        h2 { color: #2c3e50; }
+        .status { color: #0a74da; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Hello {{ name }},</h2>
+        <p>Your application status has been updated to <span class="status">{{ status }}</span>.</p>
+
+        {% if status == "Ongoing" %}
+            <p>Our team will contact you soon for the next interview round. Stay tuned!</p>
+        {% elif status == "Hired" %}
+            <p>Congratulations! You’ve been selected for the next steps. 🎉</p>
+        {% elif status == "Reject" %}
+            <p>We appreciate your time. Unfortunately, your profile didn’t match this role, but we’ll keep you in mind for future opportunities.</p>
+        {% endif %}
+
+        <p>Thank you,<br>Team GXI Hiring</p>
+    </div>
+</body>
+</html>
