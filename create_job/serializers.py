@@ -9,10 +9,7 @@ class SkillsSerializer(serializers.ModelSerializer):
 
 
 class JobSerializer(serializers.ModelSerializer):
-    # Show skill details (readable)
     Skills_Required = SkillsSerializer(many=True, read_only=True)
-
-    # Allow sending skill IDs while creating/updating
     skill_ids = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Skills.objects.all(), write_only=True
     )
