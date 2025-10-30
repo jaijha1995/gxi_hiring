@@ -270,3 +270,65 @@ class FormDataAPIView(APIView):
             "message": f"Status updated successfully (current: {submission_data.get('status')}, phase: {submission_data.get('phase')})",
             "data": serializer.data
         }, status=status.HTTP_200_OK)
+
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.conf import settings
+from django.core.mail import send_mail
+from .serializers import FormDataSerializer
+from .utils import create_teams_meeting
+
+class ScheduleInterviewAPIView(APIView):
+    def post(self, request):
+        serializer = FormDataSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
+
+            candidate_email = data.get("candidate_email")
+            interviewer_email = data.get("interviewer_email")
+            start_time = data.get("meeting_start").isoformat()
+            end_time = data.get("meeting_end").isoformat()
+
+            try:
+                meeting = create_teams_meeting(
+                    subject=f"Interview - {data.get('form_name')}",
+                    start_time=start_time,
+                    end_time=end_time,
+                    organizer_email=interviewer_email
+                )
+
+                meeting_link = meeting["joinWebUrl"]
+
+                form_instance = serializer.save(submission_data=data, form_name=data.get('form_name'))
+
+                # Send meeting link to both candidate and interviewer
+                subject = "Microsoft Teams Interview Scheduled"
+                message = (
+                    f"Dear Candidate,\n\n"
+                    f"Your interview has been scheduled.\n"
+                    f"Join via Microsoft Teams using the link below:\n\n"
+                    f"{meeting_link}\n\n"
+                    f"Meeting Time: {start_time} to {end_time}\n\n"
+                    f"Regards,\nHR Team"
+                )
+
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [candidate_email, interviewer_email]
+                )
+
+                return Response({
+                    "message": "Meeting created successfully!",
+                    "meeting_link": meeting_link
+                }, status=status.HTTP_201_CREATED)
+
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

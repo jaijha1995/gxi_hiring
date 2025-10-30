@@ -212,3 +212,21 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOOGLE_SHEETS_CREDENTIALS_FILE = os.path.join(BASE_DIR, "gxihiring-d7185498ec0f.json")
 
+
+
+
+MS_CLIENT_ID = "6f6e285f-3708-4c01-9071-ad3d619e4811"
+MS_CLIENT_SECRET = "rnB8Q~piXZvEJWJlkI8YePVQzGhrIwu_ngAj0cSA"
+MS_TENANT_ID = "aadc5d1f-19d3-4ced-a0e5-0aae419ec4d2"
+MS_GRAPH_SCOPE = "https://graph.microsoft.com/.default"
+MS_TOKEN_URL = f"https://login.microsoftonline.com/{MS_TENANT_ID}/oauth2/v2.0/token"
+MS_GRAPH_API_URL = "https://graph.microsoft.com/v1.0"
+
+# For temporary storage of token (in production, use caching or database)
+MS_GRAPH_ACCESS_TOKEN = None
+
+# MICROSOFT_CONFIG = {
+#     "client_id": "6f6e285f-3708-4c01-9071-ad3d619e4811",
+#     "tenant_id": "aadc5d1f-19d3-4ced-a0e5-0aae419ec4d2",
+#     "client_secret": "rnB8Q~piXZvEJWJlkI8YePVQzGhrIwu_ngAj0cSA",  # You must generate this below
+# }
