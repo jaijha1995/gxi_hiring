@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_summernote',
     'rest_framework',
     'corsheaders',
     'superadmin',
@@ -145,7 +146,7 @@ ASGI_APPLICATION = 'restserver.asgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql', 
-        'NAME': 'gxi_hiring',                          
+        'NAME': 'gxi_beckend',                          
         'USER': 'gxi',                
         'PASSWORD': '140806',                
         'HOST': '3.85.242.139',                  
@@ -224,6 +225,16 @@ MS_GRAPH_API_URL = "https://graph.microsoft.com/v1.0"
 
 # For temporary storage of token (in production, use caching or database)
 MS_GRAPH_ACCESS_TOKEN = None
+
+
+SUMMERNOTE_CONFIG = {
+    'iframe': True,
+    'summernote': {
+        'width': '300%',
+        'height': '700px',
+    },
+}
+
 
 # MICROSOFT_CONFIG = {
 #     "client_id": "6f6e285f-3708-4c01-9071-ad3d619e4811",
