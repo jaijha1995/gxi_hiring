@@ -1,0 +1,1 @@
+default_app_config = 'form_data.apps.FormDataConfig'
