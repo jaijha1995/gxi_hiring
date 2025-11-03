@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = 'django-insecure-%r@^ik71zj1cy72)g)&zd4q$yb@wf)l%4%pm@l744fdt8!1nt@'
 DEBUG = True
@@ -31,7 +32,8 @@ INSTALLED_APPS = [
     'candidate_form',
     'google_form_work',
     'form_data',
-    'create_job'
+    'create_job',
+    'tasks'
 ]
 
 MIDDLEWARE = [
@@ -143,6 +145,7 @@ LOGGING = {
 WSGI_APPLICATION = 'restserver.wsgi.application'
 ASGI_APPLICATION = 'restserver.asgi.application'
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql', 
@@ -151,6 +154,7 @@ DATABASES = {
         'PASSWORD': '140806',                
         'HOST': '3.85.242.139',                  
         'PORT': '5432', 
+
     }
 }
 
@@ -187,28 +191,25 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(BASE_DIR, 'cache'),
-        'TIMEOUT': 20,  # 24 hours (in seconds)
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
 }
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND')
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('1', 'true', 'yes')
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() in ('1', 'true', 'yes')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.office365.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL =False
-EMAIL_HOST_USER = 'noreply@gxinetworks.com'
-EMAIL_HOST_PASSWORD = 'August@082024'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOOGLE_SHEETS_CREDENTIALS_FILE = os.path.join(BASE_DIR, "gxihiring-d7185498ec0f.json")

@@ -8,6 +8,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "restserver.settings")
 django.setup()
 
 import google_sheet.routing
+# import tasks.routing
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),  # normal HTTP requests

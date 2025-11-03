@@ -1,7 +1,6 @@
-# app/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-
+from django.core.exceptions import ValidationError
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, role='ExternalUser', **extra_fields):
@@ -48,7 +47,6 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_EXTERNAL, db_index=True)
 
-    # Creator-tracking fields
     created_by_superadmin = models.ForeignKey(
         'self', null=True, blank=True, on_delete=models.SET_NULL, related_name='superadmin_created', db_index=True
     )
@@ -58,7 +56,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
     is_active = models.BooleanField(default=True, db_index=True)
     is_staff = models.BooleanField(default=False)
-    otp = models.CharField(max_length=6, null=True, blank=True, db_index=True)
+    otp = models.CharField(max_length=10, null=True, blank=True, db_index=True)
 
     objects = UserManager()
 
@@ -68,23 +66,48 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f"{self.email} ({self.role})"
 
+    def clean(self):
+        """
+        Enforce hierarchical consistency:
+         - Manager must have created_by_superadmin set (can't be null when role is Manager).
+         - HR must have created_by_manager set.
+         - ExternalUser must have created_by_superadmin set.
+         - Prevent circular created_by references (self or child role).
+        """
+        if self.role == self.ROLE_MANAGER and not self.created_by_superadmin:
+            raise ValidationError("Manager must be created by a SuperAdmin.")
+        if self.role == self.ROLE_HR and not self.created_by_manager:
+            raise ValidationError("HR must be created by a Manager.")
+        if self.role == self.ROLE_EXTERNAL and not self.created_by_superadmin:
+            raise ValidationError("ExternalUser must be created by a SuperAdmin.")
+
+        # prevent circular refs
+        if self.created_by_superadmin and self.created_by_superadmin_id == self.id:
+            raise ValidationError("created_by_superadmin cannot be the user itself.")
+        if self.created_by_manager and self.created_by_manager_id == self.id:
+            raise ValidationError("created_by_manager cannot be the user itself.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        # set staff flags implicitly (keeps serializer code simpler)
+        if self.role == self.ROLE_SUPERADMIN:
+            self.is_staff = True
+            self.is_superuser = True
+        elif self.role in (self.ROLE_MANAGER, self.ROLE_HR):
+            self.is_staff = True
+            self.is_superuser = False
+        else:
+            self.is_staff = False
+            self.is_superuser = False
+        super().save(*args, **kwargs)
+
     def get_creator_info(self):
-        """Return creator id/email according to this user's role (used in login response)."""
         if self.role == self.ROLE_MANAGER and self.created_by_superadmin:
-            return {
-                "superadmin_id": self.created_by_superadmin.id,
-                "superadmin_email": self.created_by_superadmin.email
-            }
+            return {"superadmin_id": self.created_by_superadmin.id, "superadmin_email": self.created_by_superadmin.email}
         if self.role == self.ROLE_HR and self.created_by_manager:
-            return {
-                "manager_id": self.created_by_manager.id,
-                "manager_email": self.created_by_manager.email
-            }
+            return {"manager_id": self.created_by_manager.id, "manager_email": self.created_by_manager.email}
         if self.role == self.ROLE_EXTERNAL and self.created_by_superadmin:
-            return {
-                "superadmin_id": self.created_by_superadmin.id,
-                "superadmin_email": self.created_by_superadmin.email
-            }
+            return {"superadmin_id": self.created_by_superadmin.id, "superadmin_email": self.created_by_superadmin.email}
         return {}
 
     class Meta:
@@ -103,9 +126,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         ordering = ['id']
 
 
-# ---------------------------
-# Proxy / Virtual Models
-# ---------------------------
+# Proxy / Virtual Models remain unchanged
 class SuperAdminManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(role=UserProfile.ROLE_SUPERADMIN)
