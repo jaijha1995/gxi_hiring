@@ -13,5 +13,14 @@ class FormData(models.Model):
     meeting_start = models.DateTimeField(blank=True, null=True)
     meeting_end = models.DateTimeField(blank=True, null=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['form_name']),
+            models.Index(fields=['submitted_at']),
+            models.Index(fields=['candidate_email']),
+        ]
+        ordering = ['-submitted_at']
+
+
     def __str__(self):
         return f"{self.form_name} submitted at {self.submitted_at}"

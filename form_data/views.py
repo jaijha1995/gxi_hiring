@@ -39,7 +39,7 @@ class FormDataAPIView(APIView):
             send_mail(
                 subject,
                 message,
-                'youremail@gmail.com',  # Replace with DEFAULT_FROM_EMAIL
+                '',  # Replace with DEFAULT_FROM_EMAIL
                 [candidate_email],
                 fail_silently=False,
             )
