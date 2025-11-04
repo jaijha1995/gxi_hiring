@@ -114,6 +114,7 @@ REST_FRAMEWORK = {
 }
 
 
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -214,6 +215,29 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GOOGLE_SHEETS_CREDENTIALS_FILE = os.path.join(BASE_DIR, "gxihiring-d7185498ec0f.json")
 
+
+
+# settings.py
+REST_FRAMEWORK = {
+    # Global throttle classes (you can keep these empty since you set per-view throttles,
+    # but leaving them here is fine too)
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.UserRateThrottle",
+        "rest_framework.throttling.AnonRateThrottle",
+    ],
+
+    # IMPORTANT: define rates for the scopes you used in your views
+    "DEFAULT_THROTTLE_RATES": {
+        # matches scope = "burst" in BurstRateThrottle
+        "burst": "60/min",          # pick your number
+        # matches scope = "sustained" in SustainedRateThrottle
+        "sustained": "2000/day",    # pick your number
+
+        # optional: defaults for built-in classes if you use them anywhere
+        "user": "1000/day",
+        "anon": "100/day",
+    },
+}
 
 
 
