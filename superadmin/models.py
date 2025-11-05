@@ -69,13 +69,6 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         return f"{self.email} ({self.role})"
 
     def clean(self):
-        """
-        Enforce hierarchical consistency:
-         - Manager must have created_by_superadmin set (can't be null when role is Manager).
-         - HR must have created_by_manager set.
-         - ExternalUser must have created_by_superadmin set.
-         - Prevent circular created_by references (self or child role).
-        """
         if self.role == self.ROLE_MANAGER and not self.created_by_superadmin:
             raise ValidationError("Manager must be created by a SuperAdmin.")
         if self.role == self.ROLE_HR and not self.created_by_manager:
