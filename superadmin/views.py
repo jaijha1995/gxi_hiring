@@ -289,3 +289,62 @@ class ForgotPasswordAPIView(APIView):
         user.password = make_password(password)
         user.save(update_fields=["password"])
         return Response({"message": "Password reset successful"}, status=200)
+    
+
+
+class ManagerTeamListAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, manager_id=None):
+        """
+        Fetch HR and HiringManager users created by a specific Manager (manager_id).
+        Supports either path param /managers/<manager_id>/team/ or ?manager_id=<id>
+        """
+        # Accept manager_id from path or query param
+        manager_id = manager_id or request.query_params.get("manager_id")
+        if not manager_id:
+            return Response(
+                {"status": "error", "message": "manager_id is required (path param or ?manager_id=)."},
+                status=400,
+            )
+
+        # Validate manager existence
+        try:
+            manager = UserProfile.objects.get(pk=manager_id)
+        except UserProfile.DoesNotExist:
+            return Response({"status": "error", "message": "Manager not found."}, status=404)
+
+        # Ensure the user is actually a Manager
+        if manager.role != UserProfile.ROLE_MANAGER:
+            return Response({"status": "error", "message": "The provided user is not a Manager."}, status=400)
+
+        # Resolve HiringManager role constant (supports both your old/new names)
+        hiring_role = getattr(UserProfile, "ROLE_HIRING_MANAGER", getattr(UserProfile, "Hiring_Manager", "HiringManager"))
+
+        # Query users created_by_manager = manager_id and role in [HR, HiringManager]
+        base_qs = UserProfile.objects.filter(
+            created_by_manager=manager_id,
+            role__in=[UserProfile.ROLE_HR, hiring_role],
+        ).order_by("id")
+
+        hr_qs = base_qs.filter(role=UserProfile.ROLE_HR)
+        hm_qs = base_qs.filter(role=hiring_role)
+
+        hr_data = UserListSerializer(hr_qs, many=True).data
+        hm_data = UserListSerializer(hm_qs, many=True).data
+
+        return Response(
+            {
+                "status": "success",
+                "manager": {"id": manager.id, "email": manager.email, "full_name": manager.full_name},
+                "counts": {
+                    "hr": hr_qs.count(),
+                    "hiring_manager": hm_qs.count(),
+                    "total": base_qs.count(),
+                },
+                "hr_list": hr_data,
+                "hiring_manager_list": hm_data,
+            },
+            status=200,
+        )
