@@ -12,7 +12,7 @@ urlpatterns = [
     path('api/candidates/', include('candidate_form.urls')),
     path('api/form_data/', include('form_data.urls')),
     path('api/create_job/', include('create_job.urls')),
-    path('api/tasks/', include('tasks.urls')),
+    # path('api/tasks/', include('tasks.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

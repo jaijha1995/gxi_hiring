@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.core.validators import validate_email
 from django.db import transaction
-from .models import UserProfile, SuperAdmin, Manager, HR, ExternalUser
+from .models import UserProfile, SuperAdmin, Manager, HR, ExternalUser , hiring_managerUser
 
 class UserSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only=True, required=False)
@@ -82,6 +82,10 @@ class HRSerializer(UserSerializer):
 class ExternalUserSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = ExternalUser
+
+class Hiring_managerSerializer(UserSerializer):
+    class Meta(UserSerializer.Meta):
+        model = hiring_managerUser 
 
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,16 +1,14 @@
 from django.urls import path
-from .views import SkillsAPIView, JobAPIView
+from .views import SkillsAPIView
 from .departmentviews import DepartmentAPIView
 from .jobtypesviews import jobtypesAPIView
 from .locationViews import LocationAPIView
 from .teamsviews import teamsAPIView
+from .addjobviews import AddJobAPIView
 
 urlpatterns = [
     path('skills/', SkillsAPIView.as_view()),
     path('skills/<int:pk>/', SkillsAPIView.as_view()),
-
-    path('jobs/', JobAPIView.as_view()),
-    path('jobs/<int:pk>/', JobAPIView.as_view()),
 
     path('department/', DepartmentAPIView.as_view()),
     path('department/<int:pk>/', DepartmentAPIView.as_view()),
@@ -26,4 +24,6 @@ urlpatterns = [
 
     path("teams/", teamsAPIView.as_view()),
     path("teams/<int:pk>/", teamsAPIView.as_view()),
+    path("addjob/", AddJobAPIView.as_view()),
+    path("addjob/<int:pk>/", AddJobAPIView.as_view()),
 ]

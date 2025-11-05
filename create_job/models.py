@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.conf import settings
 
 
 # Optional reusable timestamp mixin
@@ -50,23 +51,68 @@ class Department(TimeStampedModel):
         ordering = ["name"]
 
 
+# create_job/models.py
+# create_job/models.py
+from django.db import models
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from superadmin.models import UserProfile  # just for role constants
+
 class Teams(TimeStampedModel):
     name = models.CharField(max_length=100, unique=True, db_index=True)
     department_types = models.ForeignKey(
-        Department,
-        on_delete=models.CASCADE,
-        db_index=True,
-        null=True,
-        blank=True,
-        related_name='teams'
+        'Department', on_delete=models.CASCADE, db_index=True, null=True, blank=True, related_name='teams'
     )
 
-    def __str__(self):
-        return self.name
+    # Single Manager
+    manager = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='teams_managed',
+        db_index=True
+    )
+
+    # Single Hiring Manager
+    hiring_manager = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='teams_as_hiring_manager',
+        db_index=True
+    )
+
+    # Multiple HRs
+    hr_team_members = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='teams_as_hr',
+        blank=True
+    )
+
+    def clean(self):
+        if self.manager and self.manager.role != UserProfile.ROLE_MANAGER:
+            raise ValidationError({"manager": "Selected user is not a Manager."})
+
+        if self.hiring_manager:
+            if self.hiring_manager.role != UserProfile.Hiring_Manager:
+                raise ValidationError({"hiring_manager": "Selected user is not a HiringManager."})
+            if self.manager and self.hiring_manager.created_by_manager_id != self.manager_id:
+                raise ValidationError({"hiring_manager": "HiringManager must be created by the selected Manager."})
+
+        if self.pk:
+            bad_roles = self.hr_team_members.exclude(role=UserProfile.ROLE_HR)
+            if bad_roles.exists():
+                raise ValidationError({"hr_team_members": "All selected users must have HR role."})
+            if self.manager:
+                wrong_mgr = self.hr_team_members.exclude(created_by_manager_id=self.manager_id)
+                if wrong_mgr.exists():
+                    raise ValidationError({"hr_team_members": "All HRs must be created by the selected Manager."})
 
     class Meta:
         db_table = 'Teams'
         ordering = ["name"]
+
+
 
 
 class Job_types(TimeStampedModel):
@@ -80,57 +126,54 @@ class Job_types(TimeStampedModel):
         ordering = ["name"]
 
 
-class Job(TimeStampedModel):
-    Job_Title = models.CharField(max_length=255, db_index=True)
-    Experience_In_Years = models.IntegerField(
-        db_index=True,
-        validators=[MinValueValidator(0)]
-    )
+class add_job(TimeStampedModel):
+    title = models.CharField(max_length=255, db_index=True)
+    job_id = models.CharField(max_length=20, unique=True, db_index=True, editable=False) 
     Description = models.TextField()
-    department = models.ForeignKey(
-        Department,
-        on_delete=models.CASCADE,
-        db_index=True,
-        null=True,
-        blank=True,
-        related_name='jobs'
-    )
-    Job_Type = models.ForeignKey(
-        Job_types,
-        on_delete=models.CASCADE,
-        db_index=True,
-        null=True,
-        blank=True,
-        related_name='jobs'
-    )
-    Job_Location = models.CharField(max_length=255, db_index=True)
-    no_of_opening = models.IntegerField(
-        db_index=True,
-        validators=[MinValueValidator(0)]
-    )
-    # Keeping your original column name (typo) but adding a clearer Python name alias is risky for existing code.
-    # To avoid breaking code, we keep your original field name and add help_text.
-    Targerted_Hiring_Date = models.DateField(
-        null=True,
-        blank=True,
-        db_index=True,
-        help_text="(typo kept for backward compatibility) Targeted hiring date."
-    )
-    Skills_Required = models.ManyToManyField(
-        Skills,
-        related_name='jobs',
-        blank=True
-    )
+    Salary_range = models.CharField(max_length=100, db_index=True)
+    Experience_required = models.CharField(max_length=100, db_index=True)
+    no_opening = models.PositiveIntegerField(validators=[MinValueValidator(1)], db_index=True)
+    teams = models.ForeignKey(Teams , on_delete=models.CASCADE, null=True, blank=True, related_name='jobs', db_index=True)
+    posted_by = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True,blank=True,related_name='posted_jobs',db_index=True)
+    employments_types = models.ForeignKey(Job_types , on_delete=models.CASCADE, null=True, blank=True, related_name='jobs', db_index=True)
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
+
+
+    def save(self, *args, **kwargs):
+        # Auto-generate job_id if not set
+        if not self.job_id:
+            last_job = add_job.objects.all().order_by('-id').first()
+            if last_job and last_job.job_id:
+                try:
+                    # Extract numeric part from last job_id (e.g., GXI1002 -> 1002)
+                    last_number = int(last_job.job_id.replace('GXI', ''))
+                except ValueError:
+                    last_number = 1000  # fallback
+                new_number = last_number + 1
+            else:
+                new_number = 1001  # Start from GXI1001
+
+            self.job_id = f"GXI{new_number}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.Job_Title
+        return f"{self.title} ({self.job_id})"
 
     class Meta:
-        db_table = 'job_listings'
+        db_table = 'add_job'
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["Job_Title"]),
-            models.Index(fields=["Experience_In_Years"]),
-            models.Index(fields=["Job_Location"]),
-            models.Index(fields=["Targerted_Hiring_Date"]),
+            # Composite indexes for frequent query combinations
+            models.Index(fields=['title', 'is_active']),
+            models.Index(fields=['job_id', 'is_active']),
+            models.Index(fields=['teams', 'is_active']),
+            models.Index(fields=['employments_types', 'is_active']),
+            models.Index(fields=['Salary_range', 'Experience_required']),
+            models.Index(fields=['created_at', 'updated_at']),
         ]
-        ordering = ["-created_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=['job_id'], name='unique_job_id_constraint'),
+        ]

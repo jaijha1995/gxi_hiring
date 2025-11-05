@@ -7,4 +7,3 @@ class FormDataConfig(AppConfig):
 
     def ready(self):
         import form_data.signals  # noqa
-        import form_data.signals_task     # n

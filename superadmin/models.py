@@ -27,12 +27,14 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     ROLE_MANAGER = 'Manager'
     ROLE_HR = 'HR'
     ROLE_EXTERNAL = 'ExternalUser'
+    Hiring_Manager = 'HiringManager'
 
     ROLE_CHOICES = [
         (ROLE_SUPERADMIN, 'SuperAdmin'),
         (ROLE_MANAGER, 'Manager'),
         (ROLE_HR, 'HR'),
         (ROLE_EXTERNAL, 'ExternalUser'),
+        (Hiring_Manager, 'HiringManager'),
     ]
 
     email = models.EmailField(unique=True, max_length=255, db_index=True)
@@ -78,6 +80,8 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
             raise ValidationError("Manager must be created by a SuperAdmin.")
         if self.role == self.ROLE_HR and not self.created_by_manager:
             raise ValidationError("HR must be created by a Manager.")
+        if self.role == self.Hiring_Manager and not self.created_by_manager:  # NEW
+            raise ValidationError("HiringManager must be created by a Manager.")
         if self.role == self.ROLE_EXTERNAL and not self.created_by_superadmin:
             raise ValidationError("ExternalUser must be created by a SuperAdmin.")
 
@@ -93,7 +97,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         if self.role == self.ROLE_SUPERADMIN:
             self.is_staff = True
             self.is_superuser = True
-        elif self.role in (self.ROLE_MANAGER, self.ROLE_HR):
+        elif self.role in (self.ROLE_MANAGER, self.ROLE_HR , self.Hiring_Manager):  # NEW
             self.is_staff = True
             self.is_superuser = False
         else:
@@ -145,6 +149,10 @@ class HRManager(models.Manager):
 class ExternalUserManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(role=UserProfile.ROLE_EXTERNAL)
+    
+class Hiring_managerManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(role=UserProfile.Hiring_Manager)
 
 
 class SuperAdmin(UserProfile):
@@ -197,3 +205,17 @@ class ExternalUser(UserProfile):
     def save(self, *args, **kwargs):
         self.role = UserProfile.ROLE_EXTERNAL
         super().save(*args, **kwargs)
+
+
+class hiring_managerUser(UserProfile):
+    objects = Hiring_managerManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = 'hiring_managerUser'
+        verbose_name_plural = 'hiring_managerUser'
+
+    def save(self, *args, **kwargs):
+        self.role = UserProfile.Hiring_Manager
+        super().save(*args, **kwargs)
+
