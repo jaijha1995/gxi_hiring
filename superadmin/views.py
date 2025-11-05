@@ -297,32 +297,19 @@ class ManagerTeamListAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, manager_id=None):
-        """
-        Fetch HR and HiringManager users created by a specific Manager (manager_id).
-        Supports either path param /managers/<manager_id>/team/ or ?manager_id=<id>
-        """
-        # Accept manager_id from path or query param
         manager_id = manager_id or request.query_params.get("manager_id")
         if not manager_id:
             return Response(
                 {"status": "error", "message": "manager_id is required (path param or ?manager_id=)."},
                 status=400,
             )
-
-        # Validate manager existence
         try:
             manager = UserProfile.objects.get(pk=manager_id)
         except UserProfile.DoesNotExist:
             return Response({"status": "error", "message": "Manager not found."}, status=404)
-
-        # Ensure the user is actually a Manager
         if manager.role != UserProfile.ROLE_MANAGER:
             return Response({"status": "error", "message": "The provided user is not a Manager."}, status=400)
-
-        # Resolve HiringManager role constant (supports both your old/new names)
         hiring_role = getattr(UserProfile, "ROLE_HIRING_MANAGER", getattr(UserProfile, "Hiring_Manager", "HiringManager"))
-
-        # Query users created_by_manager = manager_id and role in [HR, HiringManager]
         base_qs = UserProfile.objects.filter(
             created_by_manager=manager_id,
             role__in=[UserProfile.ROLE_HR, hiring_role],
