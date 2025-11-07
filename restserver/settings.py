@@ -3,6 +3,7 @@ import os
 from datetime import timedelta
 from dotenv import load_dotenv
 load_dotenv()
+from corsheaders.defaults import default_headers
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -58,10 +59,10 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 # If you send custom headers like Authorization, include them:
-# CORS_ALLOW_HEADERS = list(default_headers) + [
-#     "authorization",
-#     "x-csrftoken",
-# ]
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+    "x-csrftoken",
+]
 
 # If you use Django session/CSRF cookies across sites:
 CSRF_TRUSTED_ORIGINS = [
