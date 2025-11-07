@@ -48,32 +48,35 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "https://lustrous-biscuit-236bcf.netlify.app",
-    # add dev origins if needed:
-    "http://localhost:5173",
-    # "http://localhost:3000",
-]
-
-# You’re using cookies or Authorization + credentials, so keep this True
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-# If you send custom headers like Authorization, include them:
-CORS_ALLOW_HEADERS = list(default_headers) + [
-    "authorization",
-    "x-csrftoken",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "https://lustrous-biscuit-236bcf.netlify.app",
+#     # add dev origins if needed:
+#     "http://localhost:5173",
+#     # "http://localhost:3000",
+# ]
 
-# If you use Django session/CSRF cookies across sites:
-CSRF_TRUSTED_ORIGINS = [
-    "https://lustrous-biscuit-236bcf.netlify.app",
-]
+# # You’re using cookies or Authorization + credentials, so keep this True
+# CORS_ALLOW_CREDENTIALS = True
 
-# Cross-site cookies must be Secure and SameSite=None
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = "None"
-SESSION_COOKIE_SAMESITE = "None"
+# # If you send custom headers like Authorization, include them:
+# CORS_ALLOW_HEADERS = list(default_headers) + [
+#     "authorization",
+#     "x-csrftoken",
+# ]
+
+# # If you use Django session/CSRF cookies across sites:
+# CSRF_TRUSTED_ORIGINS = [
+#     "https://lustrous-biscuit-236bcf.netlify.app",
+# ]
+
+# # Cross-site cookies must be Secure and SameSite=None
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SAMESITE = "None"
+# SESSION_COOKIE_SAMESITE = "None"
 
 ROOT_URLCONF = 'restserver.urls'
 
@@ -93,9 +96,9 @@ TEMPLATES = [
 ]
 
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://gxi_hiring.jaijhavats.info/'
-]
+# CSRF_TRUSTED_ORIGINS = [
+#     'https://gxi_hiring.jaijhavats.info/'
+# ]
 
 CHANNEL_LAYERS = {
     "default": {
