@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from .models import FormData
 from .serializers import FormDataSerializer
+import requests
 
 
 class FormDataAPIView(APIView):
@@ -332,3 +333,69 @@ class ScheduleInterviewAPIView(APIView):
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+def send_whatsapp_message(phone, name_value):
+    
+    url = f"https://live-mt-server.wati.io/{settings.TENANT_ID}/api/v1/sendTemplateMessage?whatsappNumber={phone}"
+
+    payload = {
+        "parameters": [
+            {"name": "name", "value": name_value}
+        ],
+        "template_name": "otp_service",
+        "broadcast_name": "otp_service_101120251049"
+    }
+
+    headers = {
+        "Content-Type": "application/json-patch+json",
+        "Authorization": f"Bearer {settings.WATI_API_TOKEN}"
+    }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response.raise_for_status()
+        return {
+            "success": True,
+            "response": response.json()
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "details": getattr(e.response, "text", None)
+        }
+
+
+from django.shortcuts import get_object_or_404
+
+class SendWhatsappMessageAPIView(APIView):
+    def post(self, request, form_id):
+        form_data = get_object_or_404(FormData, id=form_id)
+        serializer = FormDataSerializer(form_data)
+
+        phone = serializer.data["submission_data"]["Phone"]
+        # phone = "9161830835"  # for testing purpose
+        name = serializer.data["submission_data"].get("Name", "there")
+
+        message_text = f"{name}, thanks for your submission!"
+
+        result = send_whatsapp_message(phone, message_text)
+
+        if result["success"]:
+            return Response(
+                {
+                    "message": "WhatsApp message sent successfully!",
+                    "wati_response": result["response"],
+                    "data": serializer.data
+                },
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {
+                    "message": "Failed to send WhatsApp message",
+                    "error": result["error"],
+                    "detail": result.get("details")
+                },
+                status=status.HTTP_502_BAD_GATEWAY
+            )
