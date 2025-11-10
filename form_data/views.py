@@ -399,3 +399,53 @@ class SendWhatsappMessageAPIView(APIView):
                 },
                 status=status.HTTP_502_BAD_GATEWAY
             )
+        
+    def get(self, request):
+
+        phone = request.query_params.get("phone")
+        if not phone:
+            return Response(
+                {"error": "Missing 'phone' query parameter."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        result = self.get_whatsapp_messages(phone)
+
+        if result["success"]:
+            return Response(
+                {
+                    "message": "Messages fetched successfully.",
+                    "data": result["response"],
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {
+                    "message": "Failed to fetch WhatsApp messages.",
+                    "error": result["error"],
+                    "details": result.get("details"),
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+    def get_whatsapp_messages(self, phone):
+        url = (
+            f"https://live-mt-server.wati.io/{settings.TENANT_ID}/api/v1/getMessages/{phone}"
+        )
+
+        headers = {
+            "Authorization": f"Bearer {settings.WATI_API_TOKEN}",
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            return {"success": True, "response": response.json()}
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "details": getattr(e.response, "text", None),
+            }
